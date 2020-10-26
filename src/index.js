@@ -28,7 +28,8 @@ class Main {
         player.addListener({
             onAppReady: (app) => this._onAppReady(app),
             onVideoReady: (v) => this._onVideoReady(v),
-            onTimeUpdate: (pos) => this._onTimeUpdate(pos)
+            onTimerReady: (timer) => this._onTimerReady(timer),
+            onTimeUpdate: (pos) => this._onTimeUpdate(pos),
         });
         this._player = player;
     }
@@ -38,10 +39,24 @@ class Main {
             this._player.createFromSongUrl("https://www.youtube.com/watch?v=-6oxY-quTOA");
         }
 
-        // 画面クリックで再生／一時停止
-        document.getElementById("view").addEventListener("click", () => function(p) {
-            if (p.isPlaying) p.requestPause();
-            else p.requestPlay();
+        // ボタンクリック時の処理
+        document.querySelector("#control").style.display = "block";
+        // 再生
+        document.getElementById("play").addEventListener("click", () => function(player){
+            player.requestPlay();
+            console.log("button:play");
+        }(this._player));
+        // 頭出し
+        document.querySelector("#cueing").addEventListener("click", () => function(player){
+            player.requestMediaSeek(player.video.firstChar.startTime);
+        }(this._player));
+        // 一時停止
+        document.querySelector("#pause").addEventListener("click", () => function(player){
+            player.requestPause();
+        }(this._player));
+        // 巻き戻し
+        document.querySelector("#rewind").addEventListener("click", () => function(player){
+            player.requestMediaSeek(0);
         }(this._player));
     }
     // ビデオ準備完了
@@ -56,6 +71,12 @@ class Main {
             }
         }
         this._canMng.setLyrics(lyrics);
+    }
+    // 再生準備完了
+    _onTimerReady(timer) {
+        // ボタンを有効化する
+        document.querySelectorAll("button")
+            .forEach((btn) => (btn.disabled = false)); 
     }
     // 再生位置アップデート
     _onTimeUpdate(position) {
