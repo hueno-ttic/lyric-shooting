@@ -58,6 +58,15 @@ class Main {
         document.querySelector("#rewind").addEventListener("click", () => function(player){
             player.requestMediaSeek(0);
         }(this._player));
+
+        // 画面クリックで再生／一時停止
+        document.getElementById("view").addEventListener("click", () => function(player) {
+            if (player.isPlaying) {
+                player.requestPause();
+            } else {
+                player.requestPlay();
+            }
+        }(this._player));
     }
     // ビデオ準備完了
     _onVideoReady(v) {
