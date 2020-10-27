@@ -145,7 +145,8 @@ class CanvasManager {
 
         // １グリッドの大きさ [px]
         this._space = 160;
-        // スクロール速度
+        // スクロール速度(BPM:160相当)
+        this.setSpeed(60 * 1000 / 160);
         this._speed = 160;
         // 楽曲の再生位置
         this._position = 0;
@@ -181,8 +182,8 @@ class CanvasManager {
     setSpeed(durationMs) {
         var bpm = 1000.0 / durationMs * 60.0;
         //console.log("bpm:"+bpm);
-        // @rem BPMの上限下限およびバイアス値の調整
-        this._speed = 2.0 * clamp(bpm, 20, 360);
+        // @todo BPMの上限下限およびバイアス値の調整
+        this._speed = 1.0 * clamp(bpm, 20, 360);
     }
 
     // 再生位置アップデート
