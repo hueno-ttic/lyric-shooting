@@ -1,4 +1,4 @@
-import { Player, stringToDataUrl } from "textalive-app-api";
+import { Player, Point, stringToDataUrl } from "textalive-app-api";
 
 /**
  * 
@@ -72,11 +72,16 @@ class Main {
     _onVideoReady(v) {
         // 歌詞のセットアップ
         var lyrics = [];
-        if (v.firstChar) {
-            var c = v.firstChar;
-            while (c) {
-                lyrics.push(new Lyric(c));
-                c = c.next;
+        // @todo 表示歌詞の調整．フレーズ単位で横に並べると画面外に出るので単語単位でいい感じの区切り方にしたい．
+        if (v.firstWord) {
+            var word = v.firstWord;
+            while (word) {
+                var lyricChar = word.firstChar;
+                for(let i = 0; i < word.charCount; i++) {
+                    lyrics.push(new Lyric(lyricChar, new Point(i * 160, 80)));
+                    lyricChar = lyricChar.next;
+                }
+                word = word.next;
             }
         }
         this._canMng.setLyrics(lyrics);
@@ -117,7 +122,7 @@ class Main {
 }
 
 class Lyric {
-    constructor(data) {
+    constructor(data, startPos) {
         this.text = data.text; // 歌詞文字
         this.startTime = data.startTime; // 開始タイム [ms]
         this.endTime = data.endTime; // 終了タイム [ms]
@@ -125,6 +130,7 @@ class Lyric {
 
         this.x = 0; // グリッドの座標 x
         this.y = 0; // グリッドの座標 y
+        this.startPos = startPos;
         this.isDraw = false; // 描画するかどうか
     }
 }
@@ -183,7 +189,7 @@ class CanvasManager {
         var bpm = 1000.0 / durationMs * 60.0;
         //console.log("bpm:"+bpm);
         // @todo BPMの上限下限およびバイアス値の調整
-        this._speed = 1.0 * clamp(bpm, 20, 360);
+        this._speed = 4.0 * clamp(bpm, 20, 360);
     }
 
     // 再生位置アップデート
@@ -291,8 +297,8 @@ class CanvasManager {
                 {
                     if (!isNaN(this._mouseX) && !lyric.isDraw) {
                         // グリッド座標の計算
-                        var nx = Math.floor((-this._px + this._mouseX) / space);
-                        var ny = Math.floor((-this._py + this._mouseY) / space);
+                        var nx = Math.floor((-this._px + lyric.startPos.x) / space);
+                        var ny = Math.floor((-this._py + lyric.startPos.y) / space);
 
                         var tx = 0,
                             ty = 0,
