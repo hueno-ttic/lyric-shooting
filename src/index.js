@@ -97,10 +97,20 @@ class Main {
     _update() {
         if (this._player.isPlaying && 0 <= this._updateTime && 0 <= this._position) {
             var t = (Date.now() - this._updateTime) + this._position;
+            this._updateSpeed(t);
             this._canMng.update(t);
         }
         window.requestAnimationFrame(() => this._update());
     }
+
+    _updateSpeed(position) {
+        // ビートに合わせて移動速度の設定
+        var beat = this._player.findBeat(position);
+        if (beat) {
+            this._canMng.setSpeed(beat.duration);
+        }
+    }
+
     _resize() {
         this._canMng.resize();
     }
@@ -136,7 +146,7 @@ class CanvasManager {
         // １グリッドの大きさ [px]
         this._space = 160;
         // スクロール速度
-        this._speed = 1500;
+        this._speed = 160;
         // 楽曲の再生位置
         this._position = 0;
         // マウスが画面上にあるかどうか（画面外の場合 false）
@@ -166,6 +176,15 @@ class CanvasManager {
     setLyrics(lyrics) {
         this._lyrics = lyrics;
     }
+
+    // スクロール速度の更新
+    setSpeed(durationMs) {
+        var bpm = 1000.0 / durationMs * 60.0;
+        //console.log("bpm:"+bpm);
+        // @rem BPMの上限下限およびバイアス値の調整
+        this._speed = 2.0 * clamp(bpm, 20, 360);
+    }
+
     // 再生位置アップデート
     update(position) {
         // // マウスが画面外の時、オートモード
@@ -176,8 +195,9 @@ class CanvasManager {
         //     this._mouseY = this._sth * (this._ry + 1) / 2;
         // }
         // マウス位置に応じてスクロール位置の更新
+
         var delta = (position - this._position) / 1000;
-        this._py += this._speed / 1000;
+        this._py += this._speed * delta;
 
         this._drawBg();
         this._drawLyrics();
@@ -335,6 +355,15 @@ class CanvasManager {
         }
     }
     _easeOutBack(x) { return 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2); }
+}
+
+function clamp(val, min, max) {
+    if (max < min) {
+        var t = min;
+        min = max;
+        max = t;
+    }
+    return Math.min(max, Math.max(min, val));
 }
 
 new Main()
