@@ -1,4 +1,4 @@
-import { Player, stringToDataUrl } from "textalive-app-api";
+import { Player, Point, stringToDataUrl } from "textalive-app-api";
 
 /**
  * 
@@ -28,7 +28,8 @@ class Main {
         player.addListener({
             onAppReady: (app) => this._onAppReady(app),
             onVideoReady: (v) => this._onVideoReady(v),
-            onTimeUpdate: (pos) => this._onTimeUpdate(pos)
+            onTimerReady: (timer) => this._onTimerReady(timer),
+            onTimeUpdate: (pos) => this._onTimeUpdate(pos),
         });
         this._player = player;
     }
@@ -38,24 +39,58 @@ class Main {
             this._player.createFromSongUrl("https://www.youtube.com/watch?v=-6oxY-quTOA");
         }
 
+        // ボタンクリック時の処理
+        document.querySelector("#control").style.display = "block";
+        // 再生
+        document.getElementById("play").addEventListener("click", () => function(player){
+            player.requestPlay();
+            console.log("button:play");
+        }(this._player));
+        // 頭出し
+        document.querySelector("#cueing").addEventListener("click", () => function(player){
+            player.requestMediaSeek(player.video.firstChar.startTime);
+        }(this._player));
+        // 一時停止
+        document.querySelector("#pause").addEventListener("click", () => function(player){
+            player.requestPause();
+        }(this._player));
+        // 巻き戻し
+        document.querySelector("#rewind").addEventListener("click", () => function(player){
+            player.requestMediaSeek(0);
+        }(this._player));
+
         // 画面クリックで再生／一時停止
-        document.getElementById("view").addEventListener("click", () => function(p) {
-            if (p.isPlaying) p.requestPause();
-            else p.requestPlay();
+        document.getElementById("view").addEventListener("click", () => function(player) {
+            if (player.isPlaying) {
+                player.requestPause();
+            } else {
+                player.requestPlay();
+            }
         }(this._player));
     }
     // ビデオ準備完了
     _onVideoReady(v) {
         // 歌詞のセットアップ
         var lyrics = [];
-        if (v.firstChar) {
-            var c = v.firstChar;
-            while (c) {
-                lyrics.push(new Lyric(c));
-                c = c.next;
+        // @todo 表示歌詞の調整．フレーズ単位で横に並べると画面外に出るので単語単位でいい感じの区切り方にしたい．
+        if (v.firstWord) {
+            var word = v.firstWord;
+            while (word) {
+                var lyricChar = word.firstChar;
+                for(let i = 0; i < word.charCount; i++) {
+                    lyrics.push(new Lyric(lyricChar, new Point(i * 160, 80)));
+                    lyricChar = lyricChar.next;
+                }
+                word = word.next;
             }
         }
         this._canMng.setLyrics(lyrics);
+    }
+    // 再生準備完了
+    _onTimerReady(timer) {
+        // ボタンを有効化する
+        document.querySelectorAll("button")
+            .forEach((btn) => (btn.disabled = false)); 
     }
     // 再生位置アップデート
     _onTimeUpdate(position) {
@@ -67,17 +102,27 @@ class Main {
     _update() {
         if (this._player.isPlaying && 0 <= this._updateTime && 0 <= this._position) {
             var t = (Date.now() - this._updateTime) + this._position;
+            this._updateSpeed(t);
             this._canMng.update(t);
         }
         window.requestAnimationFrame(() => this._update());
     }
+
+    _updateSpeed(position) {
+        // ビートに合わせて移動速度の設定
+        var beat = this._player.findBeat(position);
+        if (beat) {
+            this._canMng.setSpeed(beat.duration);
+        }
+    }
+
     _resize() {
         this._canMng.resize();
     }
 }
 
 class Lyric {
-    constructor(data) {
+    constructor(data, startPos) {
         this.text = data.text; // 歌詞文字
         this.startTime = data.startTime; // 開始タイム [ms]
         this.endTime = data.endTime; // 終了タイム [ms]
@@ -85,6 +130,7 @@ class Lyric {
 
         this.x = 0; // グリッドの座標 x
         this.y = 0; // グリッドの座標 y
+        this.startPos = startPos;
         this.isDraw = false; // 描画するかどうか
     }
 }
@@ -105,8 +151,9 @@ class CanvasManager {
 
         // １グリッドの大きさ [px]
         this._space = 160;
-        // スクロール速度
-        this._speed = 1500;
+        // スクロール速度(BPM:160相当)
+        this.setSpeed(60 * 1000 / 160);
+        this._speed = 160;
         // 楽曲の再生位置
         this._position = 0;
         // マウスが画面上にあるかどうか（画面外の場合 false）
@@ -136,6 +183,15 @@ class CanvasManager {
     setLyrics(lyrics) {
         this._lyrics = lyrics;
     }
+
+    // スクロール速度の更新
+    setSpeed(durationMs) {
+        var bpm = 1000.0 / durationMs * 60.0;
+        //console.log("bpm:"+bpm);
+        // @todo BPMの上限下限およびバイアス値の調整
+        this._speed = 4.0 * clamp(bpm, 20, 360);
+    }
+
     // 再生位置アップデート
     update(position) {
         // // マウスが画面外の時、オートモード
@@ -146,8 +202,9 @@ class CanvasManager {
         //     this._mouseY = this._sth * (this._ry + 1) / 2;
         // }
         // マウス位置に応じてスクロール位置の更新
+
         var delta = (position - this._position) / 1000;
-        this._py += this._speed / 1000;
+        this._py += this._speed * delta;
 
         this._drawBg();
         this._drawLyrics();
@@ -240,8 +297,8 @@ class CanvasManager {
                 {
                     if (!isNaN(this._mouseX) && !lyric.isDraw) {
                         // グリッド座標の計算
-                        var nx = Math.floor((-this._px + this._mouseX) / space);
-                        var ny = Math.floor((-this._py + this._mouseY) / space);
+                        var nx = Math.floor((-this._px + lyric.startPos.x) / space);
+                        var ny = Math.floor((-this._py + lyric.startPos.y) / space);
 
                         var tx = 0,
                             ty = 0,
@@ -305,6 +362,15 @@ class CanvasManager {
         }
     }
     _easeOutBack(x) { return 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2); }
+}
+
+function clamp(val, min, max) {
+    if (max < min) {
+        var t = min;
+        min = max;
+        max = t;
+    }
+    return Math.min(max, Math.max(min, val));
 }
 
 new Main()
