@@ -168,7 +168,9 @@ class CanvasManager {
         this._negiList = [];
         this._negiCount = 0;
 
-        this._mikuPos = new Point(0, 0);
+        var miku = document.getElementById("miku");
+        this._mikuPos = new Point(this._space/2, 0);
+        miku.style.left = this._mikuPos.x;
 
         // キャンバス生成（描画エリア）
         this._can = document.createElement("canvas");
@@ -233,15 +235,20 @@ class CanvasManager {
         this._negiList.forEach((negi, index) => {
             negi.update(delta);
         }, (delta));
+        this._negiList.forEach((negi, index) => {
+            this._ctx.beginPath();
+            this._ctx.arc(negi.getX(), window.innerHeight - negi.getY(), 40, 0, 2*Math.PI)
+            this._ctx.stroke();
+        });
         // 画面外に出ていたら削除
         this._negiList = this._negiList.filter(negi => {
-            if(negi.is_removed()) {
+            if(negi.isRemoved()) {
                 return false;
             }
 
-            var ret = negi.get_y() < window.innerHeight;
+            var ret = negi.getY() < window.innerHeight;
             if (ret == false) {
-                negi.remove_document();
+                negi.removeDocument();
             }
             return ret;
         });
@@ -287,12 +294,12 @@ class CanvasManager {
     moveMiku(key_code) {
         var miku = document.getElementById("miku");
         // 左ボタン
-        if (key_code === 37 && 32 <= parseInt(miku.style.left)) {
-            this._mikuPos.x -=160;
+        if (key_code === 37 && 0 <= parseInt(miku.style.left) - this._space) {
+            this._mikuPos.x -= this._space;
         }
         // 右ボタン
-        if (key_code === 39 && window.innerWidth > parseInt(miku.style.left)) {
-            this._mikuPos.x +=160;
+        if (key_code === 39 && window.innerWidth > parseInt(miku.style.left) + this._space) {
+            this._mikuPos.x += this._space;
         }
         miku.style.left = this._mikuPos.x;
     }
@@ -422,11 +429,11 @@ class CanvasManager {
                     for (let j = 0; j < this._negiList.length; j++) {
                         //console.log("negiLen;"+this._negiList.length);
                         var negi = this._negiList[j];
-                        if (negi.is_removed()) {
+                        if (negi.isRemoved()) {
                             continue;
                         }
-                        var negi_x = parseInt(negi.get_x());
-                        var negi_y = parseInt(negi.get_y());
+                        var negi_x = negi.getX();
+                        var negi_y = window.innerHeight - negi.getY();
                         // あたり判定
                         if (lyric.text != "" && negi_x >= px - 40 && negi_x <= px + 40 &&
                             negi_y >= py - 40 && negi_y <= py + 40) {
@@ -435,7 +442,7 @@ class CanvasManager {
 
                             lyric.text = "";
                             lyric.isDraw = false;
-                            negi.remove_document();
+                            negi.removeDocument();
                         }
                     }
                     var prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));

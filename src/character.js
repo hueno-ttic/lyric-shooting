@@ -1,6 +1,14 @@
 const { sortedIndex } = require("textalive-app-api");
 
+/**
+ * ネギクラス．
+ * 歌詞と接触した際，歌詞を消したりエフェクトを表示するために使用．
+ */
 class Negi {
+    /**
+     * コンストラクタ
+     * @param {int} negi_count 管理用ID．negi_count は new する毎に必ずユニークな値を割り振る必要があります．Element.id 用のIDに用いる為．  
+     */
     constructor(negi_count) {
         this.x = 0.0;
         this.y = 0.0;
@@ -9,23 +17,30 @@ class Negi {
         var img = document.createElement('img');
         img.id = this.getId();
         img.src = 'pic/negi.png';
-
         // イメージの大きさ
         img.width = "100";
         img.height = "200";
 
-        // ネギの初期生成位置
+        // スタイルの初期化
         img.style.position = "absolute";
-        var miku = document.getElementById("miku");
-        img.style.left = this.x = parseInt(miku.style.left) + 60;
-        img.style.bottom = this.y = parseInt(miku.style.bottom) + 100;
 
+        // viewにネギオブジェクトを追加
         if(document.getElementById("view")) {
             document.getElementById("view").appendChild(img);
         }
+
+        // ネギの初期生成位置
+        // @todo ミクさんのネギ位置に合わせた微調整
+        var miku = document.getElementById("miku");
+        this.setX(parseInt(miku.style.left) + 0);
+        this.setY(parseInt(miku.style.bottom) + miku.height);
+
     }
 
-    remove_document() {
+    /**
+     * 生成したElement削除処理．
+     */
+    removeDocument() {
         // ネギオブジェクトの削除
         var view = document.getElementById("view");
         if(view != null) {
@@ -34,7 +49,11 @@ class Negi {
             view.removeChild(selfNode);
         }
     }
-    is_removed() {
+    /**
+     * Elementが削除済みかの判定．
+     * @returns {Boolean}
+     */
+    isRemoved() {
         var view = document.getElementById("view");
         if(view != null) {
             var selfNode = document.getElementById(this.getId())
@@ -43,36 +62,54 @@ class Negi {
         return false;
     }
 
-    // @param delta:前回呼び出し時からのposiiton差分
+    /**
+     * 更新処理．
+     * @param {Number} delta 前回呼び出し時からのposiiton差分
+     */
     update(delta) {
         var character = document.getElementById(this.getId());
         if(character == null) {
             return;
         }
-        this.y += 50 * delta;
-        character.style.bottom = this.y;
+        this.setY(this.y + 50 * delta);
     }
 
+    // メンバへのアクセッサ
     getId() {
-        return "negi" + this.count;
+        return "negi" + this._getCount();
     }
-    get_x() {
+    setX(x) {
+        this.x = x;
+        this._reflectLeft();
+    }
+    getX() {
         return this.x;
     }
-    get_left() {
-        var character = document.getElementById(this.getId());
-        return parseInt(character.style.left);
+    _reflectLeft() {
+        var selfElement = document.getElementById(this.getId());
+        selfElement.style.left = this.x - parseFloat(selfElement.width) / 2.0;
     }
-    get_y() {
+    getLeft() {
+        var selfElement = document.getElementById(this.getId());
+        return parseInt(selfElement.style.left);
+    }
+    setY(y) {
+        this.y = y;
+        this._reflectBottom();
+    }
+    getY() {
         return this.y;
     }
-    get_bottom() {
-        var character = document.getElementById(this.getId());
-        console.log("bottom:"+this.count);
-        return parseInt(character.style.bottom);
+    _reflectBottom() {
+        var selfElement = document.getElementById(this.getId());
+        selfElement.style.bottom = this.y - parseFloat(selfElement.height) / 2.0;
+    }
+    getBottom() {
+        var selfElement = document.getElementById(this.getId());
+        return parseInt(selfElement.style.bottom);
     }
 
-    get_count() {
+    _getCount() {
         return this.count;
     }
 }
