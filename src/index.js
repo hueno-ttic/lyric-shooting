@@ -164,6 +164,12 @@ class CanvasManager {
         // マウスが画面上にあるかどうか（画面外の場合 false）
         this._isOver = false;
 
+        // ネギ管理
+        this._negiList = [];
+        this._negiCount = 0;
+
+        this._mikuPos = new Point(0, 0);
+
         // キャンバス生成（描画エリア）
         this._can = document.createElement("canvas");
         this._ctx = this._can.getContext("2d");
@@ -171,7 +177,7 @@ class CanvasManager {
 
         // マウス（タッチ）イベント
         document.addEventListener("mousemove", (e) => this._move(e));
-        console.log("マウス位置：" + this._move);
+        //console.log("マウス位置：" + this._move);
         document.addEventListener("mouseleave", (e) => this._leave(e));
         if ("ontouchstart" in window) {
             // グリッドの大きさ／スクロール速度半分
@@ -180,6 +186,7 @@ class CanvasManager {
             document.addEventListener("touchmove", (e) => this._move(e));
             document.addEventListener("touchend", (e) => this._leave(e));
         }
+        document.addEventListener("keydown", (e) => this._keydown(e));
 
         this.resize();
     }
@@ -199,24 +206,47 @@ class CanvasManager {
 
     // 再生位置アップデート
     update(position) {
-            // // マウスが画面外の時、オートモード
-            // if (!this._isOver) {
-            //     this._rx = Math.sin(position / 1234 + 0.123) * 0.3 + 0.2;
-            //     this._ry = Math.cos(position / 1011 + 0.111) * 0.5;
-            //     this._mouseX = this._stw * (this._rx + 1) / 2;
-            //     this._mouseY = this._sth * (this._ry + 1) / 2;
-            // }
-            // マウス位置に応じてスクロール位置の更新
+        // // マウスが画面外の時、オートモード
+        // if (!this._isOver) {
+        //     this._rx = Math.sin(position / 1234 + 0.123) * 0.3 + 0.2;
+        //     this._ry = Math.cos(position / 1011 + 0.111) * 0.5;
+        //     this._mouseX = this._stw * (this._rx + 1) / 2;
+        //     this._mouseY = this._sth * (this._ry + 1) / 2;
+        // }
+        // マウス位置に応じてスクロール位置の更新
 
-            var delta = (position - this._position) / 1000;
-            this._py += this._speed * delta;
+        var delta = (position - this._position) / 1000;
+        //this._py += this._speed * delta;
 
-            this._drawBg();
-            this._drawLyrics();
+        this._drawBg();
+        this._drawLyrics();
 
-            this._position = position;
+        this._position = position;
+        this._update(delta);
+    }
+    _update(delta) {
+        for (var i = 0, l = this._lyrics.length; i < l; i++) {
+            this._lyrics[i].y += delta;
         }
-        // リサイズ
+
+        // ネギの処理
+        this._negiList.forEach((negi, index) => {
+            negi.update(delta);
+        }, (delta));
+        // 画面外に出ていたら削除
+        this._negiList = this._negiList.filter(negi => {
+            if(negi.is_removed()) {
+                return false;
+            }
+
+            var ret = negi.get_y() < window.innerHeight;
+            if (ret == false) {
+                negi.remove_document();
+            }
+            return ret;
+        });
+    }
+    // リサイズ
     resize() {
         this._can.width = this._stw = document.documentElement.clientWidth;
         this._can.height = this._sth = document.documentElement.clientHeight;
@@ -247,6 +277,34 @@ class CanvasManager {
         // "mouseleave" / "touchend"
     _leave(e) {
         this._isOver = false;
+    }
+    _keydown(e) {
+        // ミクを動かす
+        this.moveMiku(e.keyCode);
+        // ネギを投げるか
+        this.throwNegi(e.keyCode);
+    }
+    moveMiku(key_code) {
+        var miku = document.getElementById("miku");
+        // 左ボタン
+        if (key_code === 37 && 32 <= parseInt(miku.style.left)) {
+            this._mikuPos.x -=160;
+        }
+        // 右ボタン
+        if (key_code === 39 && window.innerWidth > parseInt(miku.style.left)) {
+            this._mikuPos.x +=160;
+        }
+        miku.style.left = this._mikuPos.x;
+    }
+    throwNegi(key_code) {
+        // エンターキーが押されたらネギを投げる
+        if (key_code === 13) {
+    
+            // 投げるネギの生成
+            let Negi = require("./character");
+            this._negiList.push(new Negi(this._negiCount));
+            this._negiCount++;
+        }
     }
 
     // 背景の模様描画
@@ -295,8 +353,6 @@ class CanvasManager {
         // 全歌詞を走査
         for (var i = 0, l = this._lyrics.length; i < l; i++) {
             var lyric = this._lyrics[i];
-
-
 
             if (lyric.startTime < position) // 開始タイム < 再生位置
             {
@@ -363,55 +419,25 @@ class CanvasManager {
 
 
                     // 衝突判定 //////////////////////////////////////
-                    var view_childern = document.getElementById("view").children;
-
-
-                    for (let j = 0; j < view_childern.length; j++) {
-                        if (view_childern[j].id.includes("negi")) {
-                            var negi = document.getElementById(view_childern[j].id);
-                        } else {
+                    for (let j = 0; j < this._negiList.length; j++) {
+                        //console.log("negiLen;"+this._negiList.length);
+                        var negi = this._negiList[j];
+                        if (negi.is_removed()) {
                             continue;
                         }
+                        var negi_x = parseInt(negi.get_x());
+                        var negi_y = parseInt(negi.get_y());
+                        // あたり判定
+                        if (lyric.text != "" && negi_x >= px - 40 && negi_x <= px + 40 &&
+                            negi_y >= py - 40 && negi_y <= py + 40) {
+                            //console.log("lyric text : " + lyric.text + "***************************");
+                            //console.log("あたったよ　　　　//////////////////////////////////");
 
-
-                        if (negi != null) {
-                            var negi_x = parseInt(negi.style.left);
-                            var negi_y = parseInt(negi.style.bottom);
-
-
-
-                            //console.log("lyric x : " + px + "***************************");
-
-                            //console.log("negi x : " + negi_x + "++++++++++++++++++++++++++++");
-
-
-                            // あたり判定
-                            if (lyric.text != "" && negi_x >= px - 40 && negi_x <= px + 40 &&
-                                negi_y >= py - 40 && negi_y <= py + 40) {
-                                console.log("lyric text : " + lyric.text + "***************************");
-
-                                console.log("あたったよ　　　　//////////////////////////////////");
-
-                                lyric.text = "";
-                                lyric.isDraw = false;
-                                document.getElementById("view").removeChild(negi);
-
-                            }
-                            //console.log(negi);
-
-
-                            //console.log("lyric y : " + py + "***************************");
-
-
-
-
-                            //console.log("negi y : " + negi.style.bottom + "++++++++++++++++++++++++++++");
-
-
-
+                            lyric.text = "";
+                            lyric.isDraw = false;
+                            negi.remove_document();
                         }
                     }
-
                     var prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));
 
                     fontSize = space * 0.5 * prog;
