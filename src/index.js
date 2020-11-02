@@ -216,7 +216,9 @@ class CanvasManager {
         // マウス位置に応じてスクロール位置の更新
 
         var delta = (position - this._position) / 1000;
-        //this._py += this._speed * delta;
+        console.log(this._speed);
+
+        this._py += this._speed * delta;
 
         this._drawBg();
         this._drawLyrics();
@@ -225,28 +227,28 @@ class CanvasManager {
         this._update(delta);
     }
     _update(delta) {
-        for (var i = 0, l = this._lyrics.length; i < l; i++) {
-            this._lyrics[i].y += delta;
+            for (var i = 0, l = this._lyrics.length; i < l; i++) {
+                this._lyrics[i].y += delta;
+            }
+
+            // ネギの処理
+            this._negiList.forEach((negi, index) => {
+                negi.update(delta);
+            }, (delta));
+            // 画面外に出ていたら削除
+            this._negiList = this._negiList.filter(negi => {
+                if (negi.is_removed()) {
+                    return false;
+                }
+
+                var ret = negi.get_y() < window.innerHeight;
+                if (ret == false) {
+                    negi.remove_document();
+                }
+                return ret;
+            });
         }
-
-        // ネギの処理
-        this._negiList.forEach((negi, index) => {
-            negi.update(delta);
-        }, (delta));
-        // 画面外に出ていたら削除
-        this._negiList = this._negiList.filter(negi => {
-            if(negi.is_removed()) {
-                return false;
-            }
-
-            var ret = negi.get_y() < window.innerHeight;
-            if (ret == false) {
-                negi.remove_document();
-            }
-            return ret;
-        });
-    }
-    // リサイズ
+        // リサイズ
     resize() {
         this._can.width = this._stw = document.documentElement.clientWidth;
         this._can.height = this._sth = document.documentElement.clientHeight;
@@ -288,18 +290,18 @@ class CanvasManager {
         var miku = document.getElementById("miku");
         // 左ボタン
         if (key_code === 37 && 32 <= parseInt(miku.style.left)) {
-            this._mikuPos.x -=160;
+            this._mikuPos.x -= 160;
         }
         // 右ボタン
         if (key_code === 39 && window.innerWidth > parseInt(miku.style.left)) {
-            this._mikuPos.x +=160;
+            this._mikuPos.x += 160;
         }
         miku.style.left = this._mikuPos.x;
     }
     throwNegi(key_code) {
         // エンターキーが押されたらネギを投げる
         if (key_code === 13) {
-    
+
             // 投げるネギの生成
             let Negi = require("./character");
             this._negiList.push(new Negi(this._negiCount));
