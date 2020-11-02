@@ -1,7 +1,6 @@
 document.write('<img id="miku" name="miku" src="pic/miku.gif"  style="position:absolute;left:0; bottom:0;" width="10%" height="20%" >');
 //document.write('<img id="negi" name="negi" src="pic/negi.png" width="5%" height="10%" stayle="display:none">');
 
-
 //キャラクターの位置
 var y = 0;
 var x = 0;
@@ -31,11 +30,11 @@ function moveMiku(key_code) {
     var miku = document.getElementById("miku");
     // 左ボタン
     if (key_code === 37 && 32 <= parseInt(miku.style.left)) {
-        x -= 32;
+        x -= 160;
     }
     // 右ボタン
     if (key_code === 39 && window.innerWidth > parseInt(miku.style.left)) {
-        x += 32;
+        x += 160;
     }
     miku.style.left = x;
 }
@@ -59,6 +58,7 @@ function updateView() {
         if (typeof negi[i] === 'undefined') {
             continue;
         }
+
         // インスタンスの更新
         negi[i].update();
 
@@ -86,14 +86,14 @@ class Negi {
         img.src = 'pic/negi.png';
 
         // イメージの大きさ
-        img.width = "25";
-        img.height = "50";
+        img.width = "100";
+        img.height = "200";
 
         // ネギの初期生成位置
         img.style.position = "absolute";
         var miku = document.getElementById("miku");
-        img.style.left = miku.style.left;
-        img.style.bottom = miku.style.bottom;
+        img.style.left = parseInt(miku.style.left) + 60;
+        img.style.bottom = parseInt(miku.style.bottom) + 100;
 
         document.getElementById("view").appendChild(img);
     }
@@ -101,7 +101,7 @@ class Negi {
     update() {
         // ゲームループ分のネギの
         var character = document.getElementById('negi' + this.count);
-        this.y += 20;
+        this.y += 50;
         character.style.bottom = this.y;
         console.log("update " + character.style.bottom);
 
@@ -112,5 +112,8 @@ class Negi {
     }
     get_y() {
         return this.y;
+    }
+    get_count() {
+        return this.count;
     }
 }
