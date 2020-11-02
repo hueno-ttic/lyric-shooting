@@ -1,88 +1,13 @@
-document.write('<img id="miku" name="miku" src="pic/miku.gif"  style="position:absolute;left:0; bottom:0;" width="10%" height="20%" >');
-//document.write('<img id="negi" name="negi" src="pic/negi.png" width="5%" height="10%" stayle="display:none">');
-
-//キャラクターの位置
-var y = 0;
-var x = 0;
-var negi_count = 0;
-let negi = [];
-
-//なにかキーが押されたとき、keydownfuncという関数を呼び出す
-addEventListener("keydown", keydownfunc);
-
-setInterval(updateView, 100);
-
-//キーが押されたときに呼び出される関数
-function keydownfunc(event) {
-
-    //押されたボタンに割り当てられた数値（すうち）を、key_codeに代入
-    var key_code = event.keyCode;
-
-    // ミクを動かす
-    moveMiku(key_code);
-
-    // ネギを投げるか
-    throwNegi(key_code);
-
-}
-
-function moveMiku(key_code) {
-    var miku = document.getElementById("miku");
-    // 左ボタン
-    if (key_code === 37 && 32 <= parseInt(miku.style.left)) {
-        x -= 160;
-    }
-    // 右ボタン
-    if (key_code === 39 && window.innerWidth > parseInt(miku.style.left)) {
-        x += 160;
-    }
-    miku.style.left = x;
-}
-
-
-function throwNegi(key_code) {
-    // エンターキーが押されたらネギを投げる
-    if (key_code === 13) {
-
-        // 投げるネギの生成
-        negi[negi_count] = new Negi(negi_count);
-        negi_count++;
-    }
-}
-
-function updateView() {
-
-    // ネギの挙動更新
-    for (i = 0; i < negi_count; i++) {
-        // インスタンスが存在するか
-        if (typeof negi[i] === 'undefined') {
-            continue;
-        }
-
-        // インスタンスの更新
-        negi[i].update();
-
-        // 画面外に出ていたら削除
-        if (negi[i].get_y() > window.innerHeight) {
-            delete negi[i];
-        }
-    }
-}
-
-function rand(min, max) {
-
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+const { sortedIndex } = require("textalive-app-api");
 
 class Negi {
-    x = 0;
-    y = 0;
-    count = 0;
     constructor(negi_count) {
+        this.x = 0.0;
+        this.y = 0.0;
         this.count = negi_count;
         // ネギオブジェクトの初期設定
         var img = document.createElement('img');
-        img.id = 'negi' + negi_count;
+        img.id = this.getId();
         img.src = 'pic/negi.png';
 
         // イメージの大きさ
@@ -92,28 +17,64 @@ class Negi {
         // ネギの初期生成位置
         img.style.position = "absolute";
         var miku = document.getElementById("miku");
-        img.style.left = parseInt(miku.style.left) + 60;
-        img.style.bottom = parseInt(miku.style.bottom) + 100;
+        img.style.left = this.x = parseInt(miku.style.left) + 60;
+        img.style.bottom = this.y = parseInt(miku.style.bottom) + 100;
 
-        document.getElementById("view").appendChild(img);
+        if(document.getElementById("view")) {
+            document.getElementById("view").appendChild(img);
+        }
     }
 
-    update() {
-        // ゲームループ分のネギの
-        var character = document.getElementById('negi' + this.count);
-        this.y += 50;
+    remove_document() {
+        // ネギオブジェクトの削除
+        var view = document.getElementById("view");
+        if(view != null) {
+            console.log("delete:"+this.getId());
+            var selfNode = document.getElementById(this.getId())
+            view.removeChild(selfNode);
+        }
+    }
+    is_removed() {
+        var view = document.getElementById("view");
+        if(view != null) {
+            var selfNode = document.getElementById(this.getId())
+            return selfNode == null;
+        }
+        return false;
+    }
+
+    // @param delta:前回呼び出し時からのposiiton差分
+    update(delta) {
+        var character = document.getElementById(this.getId());
+        if(character == null) {
+            return;
+        }
+        this.y += 50 * delta;
         character.style.bottom = this.y;
-        console.log("update " + character.style.bottom);
-
     }
 
+    getId() {
+        return "negi" + this.count;
+    }
     get_x() {
         return this.x;
+    }
+    get_left() {
+        var character = document.getElementById(this.getId());
+        return parseInt(character.style.left);
     }
     get_y() {
         return this.y;
     }
+    get_bottom() {
+        var character = document.getElementById(this.getId());
+        console.log("bottom:"+this.count);
+        return parseInt(character.style.bottom);
+    }
+
     get_count() {
         return this.count;
     }
 }
+
+module.exports = Negi;
