@@ -140,6 +140,10 @@ class Lyric {
         this.startPos = startPos;
         this.isDraw = false; // 描画するかどうか
     }
+
+    update(delta) {
+        this.pos.y += delta;
+    }
 }
 
 class CanvasManager {
@@ -207,20 +211,24 @@ class CanvasManager {
     update(position) {
         var delta = (position - this._position) / 1000;
         // @todo this._speed の反映（歌詞，ネギの更新）
+        this._updateLyric(delta);
+        this._updateNegi(delta);
 
         this._drawBg();
         this._drawLyrics();
 
         this._position = position;
-        this._updateNegi(delta);
+    }
+
+    // 歌詞のアップデート
+    _updateLyric(delta) {
+        this._lyrics.forEach((lyric, index) => {
+            lyric.update(delta);
+        }, (delta));
     }
 
     // ネギのアップデート
     _updateNegi(delta) {
-        for (var i = 0, l = this._lyrics.length; i < l; i++) {
-            this._lyrics[i].y += delta;
-        }
-
         // ネギ更新処理
         this._negiList.forEach((negi, index) => {
             negi.update(delta);
@@ -380,7 +388,7 @@ class CanvasManager {
                                         var tl = this._lyrics[j];
 
                                         // 他の歌詞と衝突している
-                                        if (tl.isDraw && tl.x == nx + tx && tl.y == ny + ty) {
+                                        if (tl.isDraw && tl.pos.x == nx + tx && tl.pos.y == ny + ty) {
                                             isOk = false;
                                             break;
                                         }
