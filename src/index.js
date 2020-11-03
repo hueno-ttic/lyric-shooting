@@ -232,7 +232,6 @@ class CanvasManager {
 
         // マウス（タッチ）イベント
         document.addEventListener("mousemove", (e) => this._move(e));
-        //console.log("マウス位置：" + this._move);
         document.addEventListener("mouseleave", (e) => this._leave(e));
         if ("ontouchstart" in window) {
             // グリッドの大きさ／スクロール速度半分
@@ -469,12 +468,6 @@ class CanvasManager {
             for (var x = 0; x <= nx; x++) {
                 var tx = x * space + ox;
                 var ty = y * space + oy;
-
-                // 十字の模様描画
-                ctx.moveTo(tx - 8, ty);
-                ctx.lineTo(tx + 8, ty);
-                ctx.moveTo(tx, ty - 8);
-                ctx.lineTo(tx, ty + 8);
             }
         }
         ctx.stroke();
@@ -605,7 +598,7 @@ class CanvasManager {
                                 var miku = document.getElementById("miku");
                                 miku.src = "pic/2020miku.gif";
 
-                                document.body.style.backgroundImage = "pic/wall2020miku.png";
+                                //document.body.style.backgroundImage = "pic/wall2020miku.png";
                             }
 
                         }
