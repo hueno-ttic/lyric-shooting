@@ -2,7 +2,7 @@ import { Player, Point, stringToDataUrl } from "textalive-app-api";
 
 /**
  * 
- * マウスに追従して歌詞が表示されるデモ
+ * 歌詞を撃ち落としてスコアを競うノスタルジック溢れるシューティングゲーム
  * 
  */
 
@@ -604,7 +604,7 @@ class CanvasManager {
                                 var miku = document.getElementById("miku");
                                 miku.src = "pic/2020miku.gif";
 
-                                //document.body.style.backgroundImage = "pic/wall2020miku.png";
+                                document.body.style.backgroundImage = "pic/wall2020miku.png";
                             }
 
                         }

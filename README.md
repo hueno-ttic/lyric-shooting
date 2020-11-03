@@ -21,6 +21,7 @@ npm install
 
 ```sh
 npm run build
+cp -r src/pic dev/
 ```
 
 サーバー動作には以下のコマンドを使用する
