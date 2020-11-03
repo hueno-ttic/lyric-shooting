@@ -169,17 +169,20 @@ class collisionEffect {
         img.style.bottom = y;
 
         // viewに爆発オブジェクトを追加
-        //if (document.getElementById("view")) {
         document.getElementById("view").appendChild(img);
-
-
     }
 
-    remove(id) {
+    update(delta) {
+        // @todo エフェクトの再生処理
+    }
+
+    remove() {
         var view = document.getElementById("view");
         if (view != null) {
-            view.removeChild(id);
-
+            var selfNode = document.getElementById(this.getId());
+            if (selfNode) {
+                view.removeChild(selfNode);
+            }
         }
     }
 
@@ -264,39 +267,12 @@ class CanvasManager {
         // @todo this._speed の反映（歌詞，ネギの更新）
         this._updateLyric(delta);
         this._updateNegi(delta);
+        this._updateCollisionEffect(delta);
 
         this._drawBg();
         this._drawLyrics();
 
         this._position = position;
-
-        var collisionEffectList = this._collisionEffectList;
-        if (collisionEffectList.length > 0) {
-            collisionEffectList.forEach(function(collisionEffect, index) {
-
-                collisionEffect.remove(collisionEffect.getId());
-            });
-        }
-
-        // todo うまくインスタンスから取得する
-        // for (let i = 0; i <= this._collisionEffectCount; i++) {
-
-        //     var view = document.getElementById("view");
-        //     if (view != null) {
-        //         var id = 'star' + i;
-        //         console.log("delete:" + id);
-        //         var selfNode = document.getElementById(id);
-        //         view.removeChild(selfNode);
-        //     }
-
-        //     // console.log(this._collisionEffectCount);
-
-        //     // console.log("count  !!!!" + id)
-
-        //     // document.getElementById("view").removeChild(id);
-        // }
-
-
     }
 
     // 歌詞のアップデート
@@ -330,6 +306,17 @@ class CanvasManager {
                 negi.removeDocument();
             }
             return ret;
+        });
+    }
+
+    // 歌詞とネギの衝突時エフェクトアップデート
+    _updateCollisionEffect(delta) {
+        this._collisionEffectList.forEach((collisionEffect, index) => {
+            collisionEffect.update(delta);
+        });
+        this._collisionEffectList = this._collisionEffectList.filter(collisionEffect => {
+            // @todo 削除判定
+            return true;
         });
     }
 
