@@ -38,7 +38,8 @@ class Main {
     // アプリ準備完了
     _onAppReady(app) {
         if (!app.songUrl) {
-            this._player.createFromSongUrl("https://www.youtube.com/watch?v=-6oxY-quTOA");
+            //this._player.createFromSongUrl("https://www.youtube.com/watch?v=-6oxY-quTOA");
+            this._player.createFromSongUrl("http://www.youtube.com/watch?v=XSLhsjepelI");
         }
 
         // ボタンクリック時の処理
@@ -149,24 +150,28 @@ class Lyric {
  */
 
 class collisionEffect {
+
     constructor(x, y, effect_count) {
         this.effect_count = effect_count;
-        var img = document.createElement('img');
-        img.id = "star" + this.effect_count;
+        this.img = document.createElement('img');
+        this.img.id = "star" + this.effect_count;
 
-        img.src = 'pic/star.gif';
+        this.time_count = 0;
+
+        this.img.src = 'pic/star1.png';
         // イメージの大きさ
-        img.width = "100";
-        img.height = "100";
+        this.img.width = "100";
+        this.img.height = "100";
 
         // スタイルの初期化
-        img.style.position = "absolute";
-        img.style.left = x - 40;
-        img.style.bottom = y;
+        this.img.style.position = "absolute";
+        this.img.style.left = x - 40;
+        this.img.style.bottom = y;
 
+        console.log(this.img);
         // viewに爆発オブジェクトを追加
         //if (document.getElementById("view")) {
-        document.getElementById("view").appendChild(img);
+        document.getElementById("view").appendChild(this.img);
 
     }
 
@@ -174,8 +179,33 @@ class collisionEffect {
         var view = document.getElementById("view");
         if (view != null) {
             view.removeChild(id);
+            delete this;
 
         }
+    }
+
+    update() {
+        console.log(this.img.src);
+        console.log(this.img.id);
+        console.log(this.img);
+        console.log("this.time_count" + this.time_count);
+        this.time_count++;
+        if (this.time_count >= 10) {
+            this.img.src = 'pic/star2.png';
+            document.getElementById("view").appendChild(this.img);
+
+        }
+
+        if (this.time_count >= 20) {
+            this.img.src = 'pic/star3.png';
+            document.getElementById("view").appendChild(this.img);
+
+        }
+
+        if (this.time_count >= 30) {
+            this.remove(this.getId());
+        }
+
     }
 
     getId() {
@@ -269,7 +299,7 @@ class CanvasManager {
         if (collisionEffectList.length > 0) {
             collisionEffectList.forEach(function(collisionEffect, index) {
 
-                collisionEffect.remove(collisionEffect.getId());
+                collisionEffect.update();
             });
         }
 
@@ -387,7 +417,7 @@ class CanvasManager {
             // 投げるネギの生成
             let Negi = require("./character");
             var src = "";
-            if (this._score > 10000) {
+            if (this._score > 50000) {
                 src = 'pic/ogi.png';
             } else {
                 src = 'pic/negi.png';
@@ -553,8 +583,7 @@ class CanvasManager {
                             this._collisionEffectCount++;
 
                             // キャラチェンジ演出
-                            if (this._score > 10000) {
-                                console.log("キャラチェンジ");
+                            if (this._score > 50000) {
                                 var miku = document.getElementById("miku");
                                 miku.src = "pic/2020miku.gif";
                             }
