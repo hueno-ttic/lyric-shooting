@@ -369,11 +369,12 @@ class CanvasManager {
                         if (lyric.text != "") {
                             lyric.isDraw = true;
                         }
-                        // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる）
+                        // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる．フレーズの変わり目の場合は左端から表示させる．）
                         var preLyric = this._lyrics[Math.max(0, i-1)];
                         var parentWord = lyric.char.parent;
+                        var parentPhrase = parentWord.parent;
                         var nextX = Math.floor(-this._px + preLyric.startPos.x + (parentWord.charCount - parentWord.findIndex(lyric.char) + 1) * space);
-                        if (0 < i && nextX < this._stw) {
+                        if (nextX < this._stw && parentPhrase.firstChar != lyric.char && 0 < i) {
                             lyric.startPos.x = preLyric.startPos.x + space;
                         } else {
                             lyric.startPos.x = 0;
