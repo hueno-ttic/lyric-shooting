@@ -92,11 +92,12 @@ class Main {
 
     // 再生準備完了
     _onTimerReady(timer) {
-            // ボタンを有効化する
-            document.querySelectorAll("button")
-                .forEach((btn) => (btn.disabled = false));
-        }
-        // 再生位置アップデート
+        // ボタンを有効化する
+        document.querySelectorAll("button")
+            .forEach((btn) => (btn.disabled = false));
+    }
+
+    // 再生位置アップデート
     _onTimeUpdate(position) {
         this._position = position;
         this._updateTime = Date.now();
@@ -125,7 +126,9 @@ class Main {
     }
 }
 
-
+/**
+ * 歌詞（1文字）クラス．
+ */
 class Lyric {
     constructor(data, startPos) {
         this.text = data.text; // 歌詞文字
@@ -133,15 +136,58 @@ class Lyric {
         this.endTime = data.endTime; // 終了タイム [ms]
         this.duration = data.duration; // 開始から終了迄の時間 [ms]
 
-        this.x = 0; // グリッドの座標 x
-        this.y = 0; // グリッドの座標 y
+        this.pos = new Point(0, 0); // グリッドの座標 x
         this.startPos = startPos;
         this.isDraw = false; // 描画するかどうか
     }
+
+    update(delta) {
+        this.pos.y += delta;
+    }
 }
 
-function getRandomInt(max) {
-    return Math.floor(Math.random() * Math.floor(max));
+
+/**
+ * 衝突判定用
+ */
+
+class collisionEffect {
+    constructor(x, y, effect_count) {
+        this.effect_count = effect_count;
+        var img = document.createElement('img');
+        img.id = "star" + this.effect_count;
+
+        img.src = 'pic/star.gif';
+        // イメージの大きさ
+        img.width = "100";
+        img.height = "100";
+
+        // スタイルの初期化
+        img.style.position = "absolute";
+        img.style.left = x - 40;
+        img.style.bottom = y;
+
+        // viewに爆発オブジェクトを追加
+        //if (document.getElementById("view")) {
+        document.getElementById("view").appendChild(img);
+
+
+    }
+
+    remove(id) {
+        var view = document.getElementById("view");
+        console.log("effect remove !!!!!!!!!!!   " + id);
+        if (view != null) {
+            view.removeChild(id);
+            console.log("effect remove !!!!!!!!!!!   " + id);
+
+        }
+    }
+
+    getId() {
+        return "star" + this.effect_count;
+    }
+
 }
 
 
@@ -167,8 +213,12 @@ class CanvasManager {
         // ネギ管理
         this._negiList = [];
         this._negiCount = 0;
+        this._collisionEffectList = [];
+        this._collisionEffectCount = 0;
 
-        this._mikuPos = new Point(0, 0);
+        var miku = document.getElementById("miku");
+        this._mikuPos = new Point(this._space / 2, 0);
+        miku.style.left = this._mikuPos.x;
 
         // キャンバス生成（描画エリア）
         this._can = document.createElement("canvas");
@@ -206,49 +256,84 @@ class CanvasManager {
 
     // 再生位置アップデート
     update(position) {
-        // // マウスが画面外の時、オートモード
-        // if (!this._isOver) {
-        //     this._rx = Math.sin(position / 1234 + 0.123) * 0.3 + 0.2;
-        //     this._ry = Math.cos(position / 1011 + 0.111) * 0.5;
-        //     this._mouseX = this._stw * (this._rx + 1) / 2;
-        //     this._mouseY = this._sth * (this._ry + 1) / 2;
-        // }
-        // マウス位置に応じてスクロール位置の更新
-
         var delta = (position - this._position) / 1000;
-        console.log(this._speed);
-
-        this._py += this._speed * delta;
+        // @todo this._speed の反映（歌詞，ネギの更新）
+        this._updateLyric(delta);
+        this._updateNegi(delta);
 
         this._drawBg();
         this._drawLyrics();
 
         this._position = position;
-        this._update(delta);
-    }
-    _update(delta) {
-            for (var i = 0, l = this._lyrics.length; i < l; i++) {
-                this._lyrics[i].y += delta;
-            }
 
-            // ネギの処理
-            this._negiList.forEach((negi, index) => {
-                negi.update(delta);
-            }, (delta));
-            // 画面外に出ていたら削除
-            this._negiList = this._negiList.filter(negi => {
-                if (negi.is_removed()) {
-                    return false;
-                }
 
-                var ret = negi.get_y() < window.innerHeight;
-                if (ret == false) {
-                    negi.remove_document();
-                }
-                return ret;
+
+        var collisionEffectList = this._collisionEffectList;
+        if (collisionEffectList.length > 0) {
+            collisionEffectList.forEach(function(collisionEffect, index) {
+                console.log(collisionEffect);
+                console.log("hogheohgoehgoehgoe");
+                console.log(this._collisionEffectList);
+                collisionEffect.remove(collisionEffect.getId());
             });
         }
-        // リサイズ
+
+        // todo うまくインスタンスから取得する
+        // for (let i = 0; i <= this._collisionEffectCount; i++) {
+
+        //     var view = document.getElementById("view");
+        //     if (view != null) {
+        //         var id = 'star' + i;
+        //         console.log("delete:" + id);
+        //         var selfNode = document.getElementById(id);
+        //         view.removeChild(selfNode);
+        //     }
+
+        //     // console.log(this._collisionEffectCount);
+
+        //     // console.log("count  !!!!" + id)
+
+        //     // document.getElementById("view").removeChild(id);
+        // }
+
+
+    }
+
+    // 歌詞のアップデート
+    _updateLyric(delta) {
+        this._lyrics.forEach((lyric, index) => {
+            lyric.update(delta);
+        }, (delta));
+    }
+
+    // ネギのアップデート
+    _updateNegi(delta) {
+        // ネギ更新処理
+        this._negiList.forEach((negi, index) => {
+            negi.update(delta);
+        }, (delta));
+        // （デバッグ表示）ネギの衝突判定用描画
+        // @todo リリース時は非表示
+        this._negiList.forEach((negi, index) => {
+            this._ctx.beginPath();
+            this._ctx.arc(negi.getX(), window.innerHeight - negi.getY(), 40, 0, 2 * Math.PI)
+            this._ctx.stroke();
+        });
+        // 画面外に出ていたら削除
+        this._negiList = this._negiList.filter(negi => {
+            if (negi.isRemoved()) {
+                return false;
+            }
+
+            var ret = negi.getY() < window.innerHeight;
+            if (ret == false) {
+                negi.removeDocument();
+            }
+            return ret;
+        });
+    }
+
+    // リサイズ
     resize() {
         this._can.width = this._stw = document.documentElement.clientWidth;
         this._can.height = this._sth = document.documentElement.clientHeight;
@@ -256,51 +341,53 @@ class CanvasManager {
 
     // "mousemove" / "touchmove"
     _move(e) {
-            var mx = 0;
-            var my = 0;
+        var mx = 0;
+        var my = 0;
 
-            if (e.touches) {
-                mx = e.touches[0].clientX;
-                my = e.touches[0].clientY;
-            } else {
-                mx = e.clientX;
-                my = e.clientY;
-            }
-            this._mouseX = mx;
-            this._mouseY = my;
-            //console.log("mx : " + mx);
-            //console.log("my : " + my);
-
-            this._rx = (mx / this._stw) * 2 - 1;
-            this._ry = (my / this._sth) * 2 - 1;
-
-            this._isOver = true;
+        if (e.touches) {
+            mx = e.touches[0].clientX;
+            my = e.touches[0].clientY;
+        } else {
+            mx = e.clientX;
+            my = e.clientY;
         }
-        // "mouseleave" / "touchend"
+        this._mouseX = mx;
+        this._mouseY = my;
+
+        this._rx = (mx / this._stw) * 2 - 1;
+        this._ry = (my / this._sth) * 2 - 1;
+
+        this._isOver = true;
+    }
+
+    // "mouseleave" / "touchend"
     _leave(e) {
         this._isOver = false;
     }
+
+    // "keydown"
     _keydown(e) {
         // ミクを動かす
         this.moveMiku(e.keyCode);
         // ネギを投げるか
         this.throwNegi(e.keyCode);
     }
+
     moveMiku(key_code) {
         var miku = document.getElementById("miku");
         // 左ボタン
-        if (key_code === 37 && 32 <= parseInt(miku.style.left)) {
-            this._mikuPos.x -= 160;
+        if (key_code === 37 && 0 <= parseInt(miku.style.left) - this._space) {
+            this._mikuPos.x -= this._space;
         }
         // 右ボタン
-        if (key_code === 39 && window.innerWidth > parseInt(miku.style.left)) {
-            this._mikuPos.x += 160;
+        if (key_code === 39 && window.innerWidth > parseInt(miku.style.left) + this._space) {
+            this._mikuPos.x += this._space;
         }
         miku.style.left = this._mikuPos.x;
     }
     throwNegi(key_code) {
-        // エンターキーが押されたらネギを投げる
-        if (key_code === 13) {
+        // スペースキーが押されたらネギを投げる
+        if (key_code === 32) {
 
             // 投げるネギの生成
             let Negi = require("./character");
@@ -311,40 +398,39 @@ class CanvasManager {
 
     // 背景の模様描画
     _drawBg() {
-            var space = this._space;
+        var space = this._space;
 
-            var ox = this._px % space;
-            var oy = this._py % space;
+        var ox = this._px % space;
+        var oy = this._py % space;
 
-            var nx = this._stw / space + 1;
-            var ny = this._sth / space + 1;
+        var nx = this._stw / space + 1;
+        var ny = this._sth / space + 1;
 
-            var ctx = this._ctx;
-            ctx.clearRect(0, 0, this._stw, this._sth);
-            ctx.strokeStyle = "#000";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
+        var ctx = this._ctx;
+        ctx.clearRect(0, 0, this._stw, this._sth);
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
 
-            for (var y = 0; y <= ny; y++) {
-                for (var x = 0; x <= nx; x++) {
-                    var tx = x * space + ox;
-                    var ty = y * space + oy;
+        for (var y = 0; y <= ny; y++) {
+            for (var x = 0; x <= nx; x++) {
+                var tx = x * space + ox;
+                var ty = y * space + oy;
 
-                    // 十字の模様描画
-                    ctx.moveTo(tx - 8, ty);
-                    ctx.lineTo(tx + 8, ty);
-                    ctx.moveTo(tx, ty - 8);
-                    ctx.lineTo(tx, ty + 8);
-                }
+                // 十字の模様描画
+                ctx.moveTo(tx - 8, ty);
+                ctx.lineTo(tx + 8, ty);
+                ctx.moveTo(tx, ty - 8);
+                ctx.lineTo(tx, ty + 8);
             }
-            ctx.stroke();
         }
-        // 歌詞の描画
+        ctx.stroke();
+    }
+
+    // 歌詞の描画
     _drawLyrics() {
         if (!this._lyrics) return;
         var position = this._position;
-        //console.log("マウス：" + position);
-        //console.log("ランダム: " + getRandomInt(10000));
         var space = this._space;
 
         var fontSize = space * 0.5;
@@ -355,11 +441,8 @@ class CanvasManager {
         // 全歌詞を走査
         for (var i = 0, l = this._lyrics.length; i < l; i++) {
             var lyric = this._lyrics[i];
-
-            if (lyric.startTime < position) // 開始タイム < 再生位置
-            {
-                if (position < lyric.endTime) // 再生位置 < 終了タイム
-                {
+            if (lyric.startTime < position) { // 開始タイム < 再生位置
+                if (position < lyric.endTime) { // 再生位置 < 終了タイム
                     if (!isNaN(this._mouseX) && !lyric.isDraw) {
                         // グリッド座標の計算
                         var nx = Math.floor((-this._px + lyric.startPos.x) / space);
@@ -384,7 +467,7 @@ class CanvasManager {
                                         var tl = this._lyrics[j];
 
                                         // 他の歌詞と衝突している
-                                        if (tl.isDraw && tl.x == nx + tx && tl.y == ny + ty) {
+                                        if (tl.isDraw && tl.pos.x == nx + tx && tl.pos.y == ny + ty) {
                                             isOk = false;
                                             break;
                                         }
@@ -399,8 +482,8 @@ class CanvasManager {
                                 }
                             }
                             // グリッド座標をセット＆描画を有効に
-                        lyric.x = nx + tx;
-                        lyric.y = ny + ty;
+                        lyric.pos.x = nx + tx;
+                        lyric.pos.y = ny + ty;
                         if (lyric.text != "") {
                             lyric.isDraw = true;
                         }
@@ -409,8 +492,8 @@ class CanvasManager {
 
                 // 描画が有効な場合、歌詞を描画する
                 if (lyric.isDraw) {
-                    var px = lyric.x * space;
-                    var py = lyric.y * space;
+                    var px = lyric.pos.x * space;
+                    var py = lyric.pos.y * space;
 
                     // 文字が画面外にある場合は除外
                     if (px + space < -this._px || -this._px + this._stw < px) continue;
@@ -424,20 +507,24 @@ class CanvasManager {
                     for (let j = 0; j < this._negiList.length; j++) {
                         //console.log("negiLen;"+this._negiList.length);
                         var negi = this._negiList[j];
-                        if (negi.is_removed()) {
+                        if (negi.isRemoved()) {
                             continue;
                         }
-                        var negi_x = parseInt(negi.get_x());
-                        var negi_y = parseInt(negi.get_y());
+                        var negi_x = negi.getX();
+                        var negi_y = window.innerHeight - negi.getY();
                         // あたり判定
                         if (lyric.text != "" && negi_x >= px - 40 && negi_x <= px + 40 &&
                             negi_y >= py - 40 && negi_y <= py + 40) {
-                            //console.log("lyric text : " + lyric.text + "***************************");
-                            //console.log("あたったよ　　　　//////////////////////////////////");
 
                             lyric.text = "";
                             lyric.isDraw = false;
-                            negi.remove_document();
+                            negi.removeDocument();
+
+                            // 当たったのエフェクト追加
+                            this._collisionEffectList.push(new collisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
+                            console.log(this._collisionEffectList);
+                            this._collisionEffectCount++;
+
                         }
                     }
                     var prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));
