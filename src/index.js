@@ -2,7 +2,7 @@ import { Player, Point, stringToDataUrl } from "textalive-app-api";
 
 /**
  * 
- * マウスに追従して歌詞が表示されるデモ
+ * 歌詞を撃ち落としてスコアを競うノスタルジック溢れるシューティングゲーム
  * 
  */
 
@@ -243,7 +243,6 @@ class CanvasManager {
 
         // マウス（タッチ）イベント
         document.addEventListener("mousemove", (e) => this._move(e));
-        //console.log("マウス位置：" + this._move);
         document.addEventListener("mouseleave", (e) => this._leave(e));
         if ("ontouchstart" in window) {
             // グリッドの大きさ／スクロール速度半分
@@ -481,12 +480,6 @@ class CanvasManager {
             for (var x = 0; x <= nx; x++) {
                 var tx = x * space + ox;
                 var ty = y * space + oy;
-
-                // 十字の模様描画
-                ctx.moveTo(tx - 8, ty);
-                ctx.lineTo(tx + 8, ty);
-                ctx.moveTo(tx, ty - 8);
-                ctx.lineTo(tx, ty + 8);
             }
         }
         ctx.stroke();
