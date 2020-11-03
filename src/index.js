@@ -177,10 +177,8 @@ class collisionEffect {
 
     remove(id) {
         var view = document.getElementById("view");
-        console.log("effect remove !!!!!!!!!!!   " + id);
         if (view != null) {
             view.removeChild(id);
-            console.log("effect remove !!!!!!!!!!!   " + id);
 
         }
     }
@@ -214,8 +212,13 @@ class CanvasManager {
         // ネギ管理
         this._negiList = [];
         this._negiCount = 0;
+
+        // エフェクトの管理
         this._collisionEffectList = [];
         this._collisionEffectCount = 0;
+
+        // スコア管理
+        this._score = 0;
 
         var miku = document.getElementById("miku");
         this._mikuPos = new Point(this._space / 2, 0);
@@ -267,14 +270,10 @@ class CanvasManager {
 
         this._position = position;
 
-
-
         var collisionEffectList = this._collisionEffectList;
         if (collisionEffectList.length > 0) {
             collisionEffectList.forEach(function(collisionEffect, index) {
-                console.log(collisionEffect);
-                console.log("hogheohgoehgoehgoe");
-                console.log(this._collisionEffectList);
+
                 collisionEffect.remove(collisionEffect.getId());
             });
         }
@@ -392,7 +391,13 @@ class CanvasManager {
 
             // 投げるネギの生成
             let Negi = require("./character");
-            this._negiList.push(new Negi(this._negiCount));
+            var src = "";
+            if (this._score > 1000) {
+                src = 'pic/ogi.png';
+            } else {
+                src = 'pic/negi.png';
+            }
+            this._negiList.push(new Negi(this._negiCount, src));
             this._negiCount++;
         }
     }
@@ -449,7 +454,7 @@ class CanvasManager {
                             lyric.isDraw = true;
                         }
                         // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる．フレーズの変わり目の場合は左端から表示させる．）
-                        var preLyric = this._lyrics[Math.max(0, i-1)];
+                        var preLyric = this._lyrics[Math.max(0, i - 1)];
                         var parentWord = lyric.char.parent;
                         var parentPhrase = parentWord.parent;
                         var nextX = Math.floor(-this._px + preLyric.startPos.x + (parentWord.charCount - parentWord.findIndex(lyric.char) + 1) * space);
@@ -534,8 +539,19 @@ class CanvasManager {
 
                             // 当たったのエフェクト追加
                             this._collisionEffectList.push(new collisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
-                            console.log(this._collisionEffectList);
                             this._collisionEffectCount++;
+
+                            // スコアの更新
+                            var score = document.getElementById("score");
+                            this._score += 100;
+                            score.textContent = "  SCORE : " + this._score;
+
+                            // キャラチェンジ演出
+                            if (this._score > 1000) {
+                                console.log("キャラチェンジ");
+                                var miku = document.getElementById("miku");
+                                miku.src = "pic/2020miku.gif";
+                            }
 
                         }
                     }

@@ -9,7 +9,7 @@ class Negi {
      * コンストラクタ
      * @param {int} negi_count 管理用ID．negi_count は new する毎に必ずユニークな値を割り振る必要があります．Element.id 用のIDに用いる為．  
      */
-    constructor(negi_count) {
+    constructor(negi_count, src_path) {
         this.x = 0.0;
         this.y = 0.0;
         this.count = negi_count;
@@ -17,7 +17,8 @@ class Negi {
         var img = document.createElement('img');
         img.id = this.getId();
 
-        img.src = 'pic/ogi.png';
+        console.log("src_path : " + src_path)
+        img.src = src_path;
 
         // イメージの大きさ
         img.width = "100";
