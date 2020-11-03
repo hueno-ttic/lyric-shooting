@@ -71,14 +71,6 @@ class Main {
         }(this._player, this._canMng));
 
 
-        // // 画面クリックで再生／一時停止
-        // document.getElementById("view").addEventListener("click", () => function(player) {
-        //     if (player.isPlaying) {
-        //         player.requestPause();
-        //     } else {
-        //         player.requestPlay();
-        //     }
-        // }(this._player));
     }
 
     // ビデオ準備完了
@@ -119,11 +111,14 @@ class Main {
             var miku = document.getElementById("miku");
             miku.src = "pic/2020miku.gif";
             this._canMng.negiSrc = "pic/ogi.png";
+            var body = document.getElementById("body");
+            body.background = "pic/wall2020miku.png";
 
         } else {
             var miku = document.getElementById("miku");
             miku.src = "pic/miku.gif";
-            this._canMng.negiSrc = "pic/negi.png";
+            var body = document.getElementById("body");
+            body.background = "pic/wallmiku.png";
         }
 
     }
@@ -200,7 +195,6 @@ class collisionEffect {
         this.img.style.left = x - 40;
         this.img.style.bottom = y;
 
-        console.log(this.img);
         // viewに爆発オブジェクトを追加
         document.getElementById("view").appendChild(this.img);
     }
@@ -316,7 +310,6 @@ class CanvasManager {
     // スクロール速度の更新
     setSpeed(durationMs) {
         var bpm = 1000.0 / durationMs * 60.0;
-        //console.log("bpm:"+bpm);
         // @todo BPMの上限下限およびバイアス値の調整
         this._speed = 4.0 * clamp(bpm, 20, 360);
     }
@@ -574,9 +567,8 @@ class CanvasManager {
                     py = this._py + py + space / 2;
 
 
-                    // 衝突判定 //////////////////////////////////////
+                    // 衝突判定 
                     for (let j = 0; j < this._negiList.length; j++) {
-                        //console.log("negiLen;"+this._negiList.length);
                         var negi = this._negiList[j];
                         if (negi.isRemoved()) {
                             continue;
@@ -635,7 +627,6 @@ function clamp(val, min, max) {
 }
 // 愛されなくても君がいる
 document.getElementById("ygY2qObZv24").onclick = function() {
-    console.log("愛されなくても君がいる");
     music_url = "http://www.youtube.com/watch?v=ygY2qObZv24";
     selectMusicDone();
     new Main()
@@ -643,7 +634,6 @@ document.getElementById("ygY2qObZv24").onclick = function() {
 
 // ブレス・ユア・ブレス
 document.getElementById("a-Nf3QUFkOU").onclick = function() {
-    console.log("ブレス・ユア・ブレス");
     music_url = "http://www.youtube.com/watch?v=a-Nf3QUFkOU";
     selectMusicDone();
     new Main()
@@ -651,7 +641,6 @@ document.getElementById("a-Nf3QUFkOU").onclick = function() {
 
 // グリーンライツ・セレナーデ
 document.getElementById("XSLhsjepelI").onclick = function() {
-    console.log("グリーンライツ・セレナーデ");
     music_url = "http://www.youtube.com/watch?v=XSLhsjepelI";
     selectMusicDone();
     new Main()

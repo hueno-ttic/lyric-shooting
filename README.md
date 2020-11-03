@@ -32,7 +32,7 @@ npm run build-dev
 ## サンプル動画
 どのようなゲームなのか動画にアップしたのでYoutube確認することができます。
 
-https://www.youtube.com/watch?v=YTh3jYrckoo
+https://www.youtube.com/watch?v=DwMRB3ZnXVc
 
 
 ## TextAlive App API

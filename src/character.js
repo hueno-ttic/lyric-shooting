@@ -17,7 +17,6 @@ class Negi {
         var img = document.createElement('img');
         img.id = this.getId();
 
-        console.log("src_path : " + src_path)
         img.src = src_path;
 
         // イメージの大きさ
@@ -47,7 +46,6 @@ class Negi {
         // ネギオブジェクトの削除
         var view = document.getElementById("view");
         if (view != null) {
-            console.log("delete:" + this.getId());
             var selfNode = document.getElementById(this.getId())
             view.removeChild(selfNode);
         }
