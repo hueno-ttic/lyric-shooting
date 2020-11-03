@@ -49,14 +49,15 @@ class Main {
             player.requestPlay();
             console.log("button:play");
         }(this._player));
-        // 頭出し
-        document.querySelector("#cueing").addEventListener("click", () => function(player) {
-            player.requestMediaSeek(player.video.firstChar.startTime);
-        }(this._player));
         // 一時停止
         document.querySelector("#pause").addEventListener("click", () => function(player) {
             player.requestPause();
         }(this._player));
+        // 最初から
+        document.querySelector("#rewind").addEventListener("click", () => function(player, canMng) {
+            player.requestMediaSeek(0);
+            canMng.initialize();
+        }(this._player, this._canMng));
 
         // 画面クリックで再生／一時停止
         document.getElementById("view").addEventListener("click", () => function(player) {
@@ -133,10 +134,15 @@ class Lyric {
         this.startTime = data.startTime; // 開始タイム [ms]
         this.endTime = data.endTime; // 終了タイム [ms]
         this.duration = data.duration; // 開始から終了迄の時間 [ms]
-
-        this.pos = new Point(0, 0); // グリッドの座標 x
         this.startPos = startPos;
+
+        this.initialize();
+    }
+
+    initialize() {
+        this.pos = new Point(0, 0); // グリッドの座標
         this.isDraw = false; // 描画するかどうか
+        this.isCollided = false; // 衝突済みかどうか
     }
 
     update(delta) {
@@ -204,6 +210,30 @@ class collisionEffect {
 
 class CanvasManager {
     constructor() {
+        // キャンバス生成（描画エリア）
+        this._can = document.createElement("canvas");
+        this._ctx = this._can.getContext("2d");
+        document.getElementById("view").append(this._can);
+
+        // マウス（タッチ）イベント
+        document.addEventListener("mousemove", (e) => this._move(e));
+        //console.log("マウス位置：" + this._move);
+        document.addEventListener("mouseleave", (e) => this._leave(e));
+        if ("ontouchstart" in window) {
+            // グリッドの大きさ／スクロール速度半分
+            this._space *= 0.1;
+            this._speed *= 0.1;
+            document.addEventListener("touchmove", (e) => this._move(e));
+            document.addEventListener("touchend", (e) => this._leave(e));
+        }
+        document.addEventListener("keydown", (e) => this._keydown(e));
+
+        this._lyrics = [];
+
+        this.initialize();
+    }
+
+    initialize() {
         // 現在のスクロール位置（画面右上基準）
         this._px = 0;
         this._py = 0;
@@ -225,35 +255,21 @@ class CanvasManager {
         this._negiList = [];
         this._negiCount = 0;
 
+        this._lyrics.forEach((lyric) => {
+            lyric.initialize();
+        });
+
         // エフェクトの管理
         this._collisionEffectList = [];
         this._collisionEffectCount = 0;
 
         // スコア管理
         this._score = 0;
+        this.setScoreText(this._score);
 
         var miku = document.getElementById("miku");
         this._mikuPos = new Point(this._space / 2, 0);
         miku.style.left = this._mikuPos.x;
-
-        // キャンバス生成（描画エリア）
-        this._can = document.createElement("canvas");
-        this._ctx = this._can.getContext("2d");
-        document.getElementById("view").append(this._can);
-
-        // マウス（タッチ）イベント
-        document.addEventListener("mousemove", (e) => this._move(e));
-        //console.log("マウス位置：" + this._move);
-        document.addEventListener("mouseleave", (e) => this._leave(e));
-        if ("ontouchstart" in window) {
-            // グリッドの大きさ／スクロール速度半分
-            this._space *= 0.1;
-            this._speed *= 0.1;
-            document.addEventListener("touchmove", (e) => this._move(e));
-            document.addEventListener("touchend", (e) => this._leave(e));
-        }
-        document.addEventListener("keydown", (e) => this._keydown(e));
-
         this.resize();
     }
 
@@ -398,6 +414,12 @@ class CanvasManager {
         }
     }
 
+
+    setScoreText(score) {
+        var scoreElement = document.getElementById("score");
+        scoreElement.textContent = "  SCORE : " + score;
+    }
+
     _isKanji() {
         return true;
 
@@ -450,9 +472,11 @@ class CanvasManager {
             var lyric = this._lyrics[i];
             if (lyric.startTime < position) { // 開始タイム < 再生位置
                 if (position < lyric.endTime) { // 再生位置 < 終了タイム
-                    if (!isNaN(this._mouseX) && !lyric.isDraw) {
-                        if (lyric.text != "") {
+                    if (!lyric.isDraw) {
+                        if (lyric.isCollided == false) {
                             lyric.isDraw = true;
+                        } else {
+                            continue;
                         }
                         // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる．フレーズの変わり目の場合は左端から表示させる．）
                         var preLyric = this._lyrics[Math.max(0, i - 1)];
@@ -531,21 +555,20 @@ class CanvasManager {
                         var negi_x = negi.getX();
                         var negi_y = window.innerHeight - negi.getY();
                         // あたり判定
-                        if (lyric.text != "" && negi_x >= px - 40 && negi_x <= px + 40 &&
+                        if (lyric.isCollided == false && negi_x >= px - 40 && negi_x <= px + 40 &&
                             negi_y >= py - 40 && negi_y <= py + 40) {
 
 
                             // スコアの更新
-                            var score = document.getElementById("score");
                             var regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
                             if (lyric.text.match(regexp)) {
                                 this._score += 1000;
                             } else {
                                 this._score += 100;
                             }
-                            score.textContent = "  SCORE : " + this._score;
+                            this.setScoreText(this._score);
 
-                            lyric.text = "";
+                            lyric.isCollided = true;
                             lyric.isDraw = false;
                             negi.removeDocument();
 
