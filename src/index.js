@@ -14,6 +14,9 @@ class Main {
 
         window.addEventListener("resize", () => this._resize());
         this._update();
+
+        this._duration = 0;
+        this._position = 0;
     }
 
     // プレイヤー初期化
@@ -45,10 +48,14 @@ class Main {
         // ボタンクリック時の処理
         document.querySelector("#control").style.display = "block";
         // 再生
-        document.getElementById("play").addEventListener("click", () => function(player) {
+        document.getElementById("play").addEventListener("click", () => function(player, canMng, main) {
+            // 最後まで再生済みの場合は最初から再生
+            if (main._duration <= main._position) {
+                player.requestMediaSeek(0);
+                canMng.initialize();
+            }
             player.requestPlay();
-            console.log("button:play");
-        }(this._player));
+        }(this._player, this._canMng, this));
         // 一時停止
         document.querySelector("#pause").addEventListener("click", () => function(player) {
             player.requestPause();
@@ -86,6 +93,7 @@ class Main {
             }
         }
         this._canMng.setLyrics(lyrics);
+        this._duration = v.duration;
     }
 
     // 再生準備完了
@@ -229,6 +237,8 @@ class CanvasManager {
         document.addEventListener("keydown", (e) => this._keydown(e));
 
         this._lyrics = [];
+        this._negiList = [];
+        this._collisionEffectList = [];
 
         this.initialize();
     }
@@ -251,15 +261,21 @@ class CanvasManager {
         // マウスが画面上にあるかどうか（画面外の場合 false）
         this._isOver = false;
 
-        // ネギ管理
-        this._negiList = [];
-        this._negiCount = 0;
-
         this._lyrics.forEach((lyric) => {
             lyric.initialize();
         });
 
+        // ネギ管理
+        this._negiList.forEach((negi) => {
+            negi.removeDocument();
+        });
+        this._negiList = [];
+        this._negiCount = 0;
+
         // エフェクトの管理
+        this._collisionEffectList.forEach((effect) => {
+            effect.remove();
+        });
         this._collisionEffectList = [];
         this._collisionEffectCount = 0;
 
