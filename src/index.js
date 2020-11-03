@@ -109,16 +109,23 @@ class Main {
         // キャラチェンジ演出
         if (this._player.findChorus(position) != null) {
             var miku = document.getElementById("miku");
-            miku.src = "pic/2020miku.gif";
-            this._canMng.negiSrc = "pic/ogi.png";
-            var body = document.getElementById("body");
-            body.background = "pic/wall2020miku.png";
+            if (miku.src.includes("pic/miku.gif")) {
+
+                miku.src = "pic/2020miku.gif";
+                this._canMng.negiSrc = "pic/ogi.png";
+                var body = document.getElementById("body");
+                body.background = "pic/wall2020miku.png";
+            }
 
         } else {
             var miku = document.getElementById("miku");
-            miku.src = "pic/miku.gif";
-            var body = document.getElementById("body");
-            body.background = "pic/wallmiku.png";
+            if (!miku.src.includes("pic/miku.gif")) {
+
+                miku.src = "pic/miku.gif ";
+                this._canMng.negiSrc = "pic/negi.png";
+                var body = document.getElementById("body");
+                body.background = "pic/wallmiku.png";
+            }
         }
 
     }
