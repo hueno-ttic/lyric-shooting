@@ -56,10 +56,6 @@ class Main {
         document.querySelector("#pause").addEventListener("click", () => function(player) {
             player.requestPause();
         }(this._player));
-        // 巻き戻し
-        document.querySelector("#rewind").addEventListener("click", () => function(player) {
-            player.requestMediaSeek(0);
-        }(this._player));
 
         // 画面クリックで再生／一時停止
         document.getElementById("view").addEventListener("click", () => function(player) {
@@ -171,7 +167,6 @@ class collisionEffect {
         // viewに爆発オブジェクトを追加
         //if (document.getElementById("view")) {
         document.getElementById("view").appendChild(img);
-
 
     }
 
@@ -392,7 +387,7 @@ class CanvasManager {
             // 投げるネギの生成
             let Negi = require("./character");
             var src = "";
-            if (this._score > 1000) {
+            if (this._score > 10000) {
                 src = 'pic/ogi.png';
             } else {
                 src = 'pic/negi.png';
@@ -400,6 +395,11 @@ class CanvasManager {
             this._negiList.push(new Negi(this._negiCount, src));
             this._negiCount++;
         }
+    }
+
+    _isKanji() {
+        return true;
+
     }
 
     // 背景の模様描画
@@ -533,6 +533,17 @@ class CanvasManager {
                         if (lyric.text != "" && negi_x >= px - 40 && negi_x <= px + 40 &&
                             negi_y >= py - 40 && negi_y <= py + 40) {
 
+
+                            // スコアの更新
+                            var score = document.getElementById("score");
+                            var regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
+                            if (lyric.text.match(regexp)) {
+                                this._score += 1000;
+                            } else {
+                                this._score += 100;
+                            }
+                            score.textContent = "  SCORE : " + this._score;
+
                             lyric.text = "";
                             lyric.isDraw = false;
                             negi.removeDocument();
@@ -541,13 +552,8 @@ class CanvasManager {
                             this._collisionEffectList.push(new collisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
                             this._collisionEffectCount++;
 
-                            // スコアの更新
-                            var score = document.getElementById("score");
-                            this._score += 100;
-                            score.textContent = "  SCORE : " + this._score;
-
                             // キャラチェンジ演出
-                            if (this._score > 1000) {
+                            if (this._score > 10000) {
                                 console.log("キャラチェンジ");
                                 var miku = document.getElementById("miku");
                                 miku.src = "pic/2020miku.gif";
@@ -556,6 +562,13 @@ class CanvasManager {
                         }
                     }
                     var prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));
+
+                    var regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
+                    if (lyric.text.match(regexp)) {
+                        ctx.fillStyle = '#FF0000';
+                    } else {
+                        ctx.fillStyle = '#000000';
+                    }
 
                     fontSize = space * 0.5 * prog;
                     ctx.font = "bold " + fontSize + "px sans-serif";
