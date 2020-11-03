@@ -603,6 +603,8 @@ class CanvasManager {
                             if (this._score > 50000) {
                                 var miku = document.getElementById("miku");
                                 miku.src = "pic/2020miku.gif";
+
+                                //document.body.style.backgroundImage = "pic/wall2020miku.png";
                             }
 
                         }
