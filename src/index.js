@@ -16,6 +16,9 @@ class Main {
 
         window.addEventListener("resize", () => this._resize());
         this._update();
+
+        this._duration = 0;
+        this._position = 0;
     }
 
     // プレイヤー初期化
@@ -51,18 +54,23 @@ class Main {
         // ボタンクリック時の処理
         document.querySelector("#control").style.display = "block";
         // 再生
-        document.getElementById("play").addEventListener("click", () => function(player) {
+        document.getElementById("play").addEventListener("click", () => function(player, canMng, main) {
+            // 最後まで再生済みの場合は最初から再生
+            if (main._duration <= main._position) {
+                player.requestMediaSeek(0);
+                canMng.initialize();
+            }
             player.requestPlay();
-            console.log("button:play");
-        }(this._player));
-        // 頭出し
-        document.querySelector("#cueing").addEventListener("click", () => function(player) {
-            player.requestMediaSeek(player.video.firstChar.startTime);
-        }(this._player));
+        }(this._player, this._canMng, this));
         // 一時停止
         document.querySelector("#pause").addEventListener("click", () => function(player) {
             player.requestPause();
         }(this._player));
+        // 最初から
+        document.querySelector("#rewind").addEventListener("click", () => function(player, canMng) {
+            player.requestMediaSeek(0);
+            canMng.initialize();
+        }(this._player, this._canMng));
 
 
         // // 画面クリックで再生／一時停止
@@ -92,6 +100,7 @@ class Main {
             }
         }
         this._canMng.setLyrics(lyrics);
+        this._duration = v.duration;
     }
 
     // 再生準備完了
@@ -140,10 +149,15 @@ class Lyric {
         this.startTime = data.startTime; // 開始タイム [ms]
         this.endTime = data.endTime; // 終了タイム [ms]
         this.duration = data.duration; // 開始から終了迄の時間 [ms]
-
-        this.pos = new Point(0, 0); // グリッドの座標 x
         this.startPos = startPos;
+
+        this.initialize();
+    }
+
+    initialize() {
+        this.pos = new Point(0, 0); // グリッドの座標
         this.isDraw = false; // 描画するかどうか
+        this.isCollided = false; // 衝突済みかどうか
     }
 
     update(delta) {
@@ -211,38 +225,6 @@ class collisionEffect {
 
 class CanvasManager {
     constructor() {
-        // 現在のスクロール位置（画面右上基準）
-        this._px = 0;
-        this._py = 0;
-        // マウス位置（中心が 0, -1 ~ 1 の範囲に正規化された値）
-        this._rx = 0;
-        this._ry = 0;
-
-        // １グリッドの大きさ [px]
-        this._space = 160;
-        // スクロール速度(BPM:160相当)
-        this.setSpeed(60 * 1000 / 160);
-        this._speed = 160;
-        // 楽曲の再生位置
-        this._position = 0;
-        // マウスが画面上にあるかどうか（画面外の場合 false）
-        this._isOver = false;
-
-        // ネギ管理
-        this._negiList = [];
-        this._negiCount = 0;
-
-        // エフェクトの管理
-        this._collisionEffectList = [];
-        this._collisionEffectCount = 0;
-
-        // スコア管理
-        this._score = 0;
-
-        var miku = document.getElementById("miku");
-        this._mikuPos = new Point(this._space / 2, 0);
-        miku.style.left = this._mikuPos.x;
-
         // キャンバス生成（描画エリア）
         this._can = document.createElement("canvas");
         this._ctx = this._can.getContext("2d");
@@ -261,6 +243,56 @@ class CanvasManager {
         }
         document.addEventListener("keydown", (e) => this._keydown(e));
 
+        this._lyrics = [];
+        this._negiList = [];
+        this._collisionEffectList = [];
+
+        this.initialize();
+    }
+
+    initialize() {
+        // 現在のスクロール位置（画面右上基準）
+        this._px = 0;
+        this._py = 0;
+        // マウス位置（中心が 0, -1 ~ 1 の範囲に正規化された値）
+        this._rx = 0;
+        this._ry = 0;
+
+        // １グリッドの大きさ [px]
+        this._space = 160;
+        // スクロール速度(BPM:160相当)
+        this.setSpeed(60 * 1000 / 160);
+        this._speed = 160;
+        // 楽曲の再生位置
+        this._position = 0;
+        // マウスが画面上にあるかどうか（画面外の場合 false）
+        this._isOver = false;
+
+        this._lyrics.forEach((lyric) => {
+            lyric.initialize();
+        });
+
+        // ネギ管理
+        this._negiList.forEach((negi) => {
+            negi.removeDocument();
+        });
+        this._negiList = [];
+        this._negiCount = 0;
+
+        // エフェクトの管理
+        this._collisionEffectList.forEach((effect) => {
+            effect.remove();
+        });
+        this._collisionEffectList = [];
+        this._collisionEffectCount = 0;
+
+        // スコア管理
+        this._score = 0;
+        this.setScoreText(this._score);
+
+        var miku = document.getElementById("miku");
+        this._mikuPos = new Point(this._space / 2, 0);
+        miku.style.left = this._mikuPos.x;
         this.resize();
     }
 
@@ -405,6 +437,12 @@ class CanvasManager {
         }
     }
 
+
+    setScoreText(score) {
+        var scoreElement = document.getElementById("score");
+        scoreElement.textContent = "  SCORE : " + score;
+    }
+
     _isKanji() {
         return true;
 
@@ -457,9 +495,11 @@ class CanvasManager {
             var lyric = this._lyrics[i];
             if (lyric.startTime < position) { // 開始タイム < 再生位置
                 if (position < lyric.endTime) { // 再生位置 < 終了タイム
-                    if (!isNaN(this._mouseX) && !lyric.isDraw) {
-                        if (lyric.text != "") {
+                    if (!lyric.isDraw) {
+                        if (lyric.isCollided == false) {
                             lyric.isDraw = true;
+                        } else {
+                            continue;
                         }
                         // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる．フレーズの変わり目の場合は左端から表示させる．）
                         var preLyric = this._lyrics[Math.max(0, i - 1)];
@@ -538,21 +578,20 @@ class CanvasManager {
                         var negi_x = negi.getX();
                         var negi_y = window.innerHeight - negi.getY();
                         // あたり判定
-                        if (lyric.text != "" && negi_x >= px - 40 && negi_x <= px + 40 &&
+                        if (lyric.isCollided == false && negi_x >= px - 40 && negi_x <= px + 40 &&
                             negi_y >= py - 40 && negi_y <= py + 40) {
 
 
                             // スコアの更新
-                            var score = document.getElementById("score");
                             var regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
                             if (lyric.text.match(regexp)) {
                                 this._score += 1000;
                             } else {
                                 this._score += 100;
                             }
-                            score.textContent = "  SCORE : " + this._score;
+                            this.setScoreText(this._score);
 
-                            lyric.text = "";
+                            lyric.isCollided = true;
                             lyric.isDraw = false;
                             negi.removeDocument();
 
