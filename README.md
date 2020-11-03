@@ -1,14 +1,13 @@
 # 概要
 歌詞を撃ち落としてスコアを競うノスタルジック溢れるシューティングゲームです。
 
-## 操作方法
+## 操作方法とゲーム内容
 - 画面したのキャラクターをキーボードの右左キーで動かして落ちてくる歌詞の下に行きます。
 - 移動したい位置まで移動できたらスペースキーで弾を発射します。
 - 当たるとスコアに反映されます。
+- 漢字に当たると高得点です。
 - 最高点をめざして頑張ってください！
 - サビになるとキャラが変身します！！
-
-
 
 ## 開発
 [Node.js](https://nodejs.org/) をインストールしている環境で以下のコマンドを実行すると、開発用サーバが起動します。
@@ -41,3 +40,9 @@ https://www.youtube.com/watch?v=DwMRB3ZnXVc
 TextAlive App API は、音楽に合わせてタイミングよく歌詞が動くWebアプリケーション（リリックアプリ）を開発できるJavaScript用のライブラリです。
 
 TextAlive App API について詳しくはWebサイト [TextAlive for Developers](https://developer.textalive.jp/) をご覧ください。
+
+## 連絡先
+うまく動かない場合は以下の連絡先にご連絡ください。
+- email: tsukasa.hiroshi@gmail.com
+- twitter: @super_reader
+
