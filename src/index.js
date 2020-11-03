@@ -5,6 +5,8 @@ import { Player, Point, stringToDataUrl } from "textalive-app-api";
  * マウスに追従して歌詞が表示されるデモ
  * 
  */
+
+var music_url;
 class Main {
     constructor() {
         var canMng = new CanvasManager();
@@ -38,9 +40,13 @@ class Main {
     // アプリ準備完了
     _onAppReady(app) {
         if (!app.songUrl) {
-            //this._player.createFromSongUrl("https://www.youtube.com/watch?v=-6oxY-quTOA");
-            this._player.createFromSongUrl("http://www.youtube.com/watch?v=XSLhsjepelI");
+            //this._player.createFromSongUrl("http://www.youtube.com/watch?v=ygY2qObZv24");
+            this._player.createFromSongUrl(music_url);
+            // }
         }
+
+
+
 
         // ボタンクリック時の処理
         document.querySelector("#control").style.display = "block";
@@ -58,14 +64,15 @@ class Main {
             player.requestPause();
         }(this._player));
 
-        // 画面クリックで再生／一時停止
-        document.getElementById("view").addEventListener("click", () => function(player) {
-            if (player.isPlaying) {
-                player.requestPause();
-            } else {
-                player.requestPlay();
-            }
-        }(this._player));
+
+        // // 画面クリックで再生／一時停止
+        // document.getElementById("view").addEventListener("click", () => function(player) {
+        //     if (player.isPlaying) {
+        //         player.requestPause();
+        //     } else {
+        //         player.requestPlay();
+        //     }
+        // }(this._player));
     }
 
     // ビデオ準備完了
@@ -588,5 +595,41 @@ function clamp(val, min, max) {
     }
     return Math.min(max, Math.max(min, val));
 }
+// 愛されなくても君がいる
+document.getElementById("ygY2qObZv24").onclick = function() {
+    console.log("愛されなくても君がいる");
+    music_url = "http://www.youtube.com/watch?v=ygY2qObZv24";
+    selectMusicDone();
+    new Main()
+};
 
-new Main()
+// ブレス・ユア・ブレス
+document.getElementById("a-Nf3QUFkOU").onclick = function() {
+    console.log("ブレス・ユア・ブレス");
+    music_url = "http://www.youtube.com/watch?v=a-Nf3QUFkOU";
+    selectMusicDone();
+    new Main()
+};
+
+// グリーンライツ・セレナーデ
+document.getElementById("XSLhsjepelI").onclick = function() {
+    console.log("グリーンライツ・セレナーデ");
+    music_url = "http://www.youtube.com/watch?v=XSLhsjepelI";
+    selectMusicDone();
+    new Main()
+};
+
+function selectMusicDone() {
+    document.getElementById("ygY2qObZv24").style.display = "none";
+    document.getElementById("a-Nf3QUFkOU").style.display = "none";
+    document.getElementById("XSLhsjepelI").style.display = "none";
+    document.getElementById("play_img").style.display = "none";
+
+    var score = document.createElement("font");
+    score.size = 20;
+    score.id = "score";
+    score.textContent = "SCORE : 0";
+
+    document.getElementById("view").appendChild(score);
+    //    <font size="20" id="score" display="none">  <b>SCORE</b> : 0</font><br></br>
+}
