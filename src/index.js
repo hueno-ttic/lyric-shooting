@@ -291,6 +291,7 @@ class CanvasManager {
         this.setScoreText(this._score);
 
         var miku = document.getElementById("miku");
+        miku.src = "pic/miku.gif";
         this._mikuPos = new Point(this._space / 2, 0);
         miku.style.left = this._mikuPos.x;
         this.resize();
