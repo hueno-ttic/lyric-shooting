@@ -65,3 +65,20 @@ body {
 #control>button:last-child {
     margin-right: 0;
 }
+
+ul {
+    list-style-type: none;
+}
+
+a {
+    background-color: #336699;
+    color: #fff;
+    display: block;
+    width: 150px;
+    padding: 5px 10px;
+    text-decoration: none;
+}
+
+a:hover {
+    background-color: #113366;
+}

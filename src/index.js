@@ -20,8 +20,8 @@ class Main {
     _initPlayer() {
         var player = new Player({
             app: {
-                appAuthor: "daniwell",
-                appName: "Lyric Tiles"
+                appAuthor: "TTIC",
+                appName: "Lyric Shooting!!"
             },
             mediaElement: document.querySelector("#media")
         });
