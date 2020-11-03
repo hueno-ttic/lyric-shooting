@@ -158,7 +158,7 @@ class collisionEffect {
 
         this.time_count = 0;
 
-        this.img.src = 'pic/star1.png';
+        this.img.src = 'pic/star.gif';
         // イメージの大きさ
         this.img.width = "100";
         this.img.height = "100";
@@ -183,27 +183,12 @@ class collisionEffect {
             var selfNode = document.getElementById(this.getId());
             if (selfNode) {
                 view.removeChild(selfNode);
+                delete this;
             }
         }
     }
     update() {
-        console.log(this.img.src);
-        console.log(this.img.id);
-        console.log(this.img);
-        console.log("this.time_count" + this.time_count);
         this.time_count++;
-        if (this.time_count >= 10) {
-            this.img.src = 'pic/star2.png';
-            document.getElementById("view").appendChild(this.img);
-
-        }
-
-        if (this.time_count >= 20) {
-            this.img.src = 'pic/star3.png';
-            document.getElementById("view").appendChild(this.img);
-
-        }
-
         if (this.time_count >= 30) {
             this.remove(this.getId());
         }
