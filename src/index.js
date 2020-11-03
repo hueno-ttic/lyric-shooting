@@ -26,7 +26,8 @@ class Main {
         var player = new Player({
             app: {
                 appAuthor: "TTIC",
-                appName: "Lyric Shooting!!"
+                appName: "Lyric Shooting!!",
+                valenceArousalEnabled: true
             },
             mediaElement: document.querySelector("#media")
         });
@@ -47,9 +48,6 @@ class Main {
             this._player.createFromSongUrl(music_url);
             // }
         }
-
-
-
 
         // ボタンクリック時の処理
         document.querySelector("#control").style.display = "block";
@@ -115,6 +113,19 @@ class Main {
         this._position = position;
         this._updateTime = Date.now();
         this._canMng.update(position);
+
+        // キャラチェンジ演出
+        if (this._player.findChorus(position) != null) {
+            var miku = document.getElementById("miku");
+            miku.src = "pic/2020miku.gif";
+            this._canMng.negiSrc = "pic/ogi.png";
+
+        } else {
+            var miku = document.getElementById("miku");
+            miku.src = "pic/miku.gif";
+            this._canMng.negiSrc = "pic/negi.png";
+        }
+
     }
 
     _update() {
@@ -245,6 +256,7 @@ class CanvasManager {
 
         this._lyrics = [];
         this._negiList = [];
+        this.negiSrc = "";
         this._collisionEffectList = [];
 
         this.initialize();
@@ -428,8 +440,8 @@ class CanvasManager {
             // 投げるネギの生成
             let Negi = require("./character");
             var src = "";
-            if (this._score > 50000) {
-                src = 'pic/ogi.png';
+            if (this.negiSrc != "") {
+                src = this.negiSrc;
             } else {
                 src = 'pic/negi.png';
             }
@@ -599,13 +611,6 @@ class CanvasManager {
                             // 当たったのエフェクト追加
                             this._collisionEffectList.push(new collisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
                             this._collisionEffectCount++;
-
-                            // キャラチェンジ演出
-                            if (this._score > 50000) {
-                                var miku = document.getElementById("miku");
-                                miku.src = "pic/2020miku.gif";
-                            }
-
                         }
                     }
                     var prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));
