@@ -16,16 +16,18 @@ class Negi {
         // ネギオブジェクトの初期設定
         var img = document.createElement('img');
         img.id = this.getId();
-        img.src = 'pic/negi.png';
+
+        img.src = 'pic/ogi.png';
+
         // イメージの大きさ
         img.width = "100";
-        img.height = "200";
+        img.height = "150";
 
         // スタイルの初期化
         img.style.position = "absolute";
 
         // viewにネギオブジェクトを追加
-        if(document.getElementById("view")) {
+        if (document.getElementById("view")) {
             document.getElementById("view").appendChild(img);
         }
 
@@ -43,19 +45,20 @@ class Negi {
     removeDocument() {
         // ネギオブジェクトの削除
         var view = document.getElementById("view");
-        if(view != null) {
-            console.log("delete:"+this.getId());
+        if (view != null) {
+            console.log("delete:" + this.getId());
             var selfNode = document.getElementById(this.getId())
             view.removeChild(selfNode);
         }
     }
+
     /**
      * Elementが削除済みかの判定．
      * @returns {Boolean}
      */
     isRemoved() {
         var view = document.getElementById("view");
-        if(view != null) {
+        if (view != null) {
             var selfNode = document.getElementById(this.getId())
             return selfNode == null;
         }
@@ -68,10 +71,10 @@ class Negi {
      */
     update(delta) {
         var character = document.getElementById(this.getId());
-        if(character == null) {
+        if (character == null) {
             return;
         }
-        this.setY(this.y + 50 * delta);
+        this.setY(this.y + 600 * delta);
     }
 
     // メンバへのアクセッサ

@@ -96,7 +96,7 @@ class Main {
         document.querySelectorAll("button")
             .forEach((btn) => (btn.disabled = false));
     }
-    
+
     // 再生位置アップデート
     _onTimeUpdate(position) {
         this._position = position;
@@ -131,6 +131,7 @@ class Main {
  */
 class Lyric {
     constructor(data, startPos) {
+        this.char = data; // 歌詞データ
         this.text = data.text; // 歌詞文字
         this.startTime = data.startTime; // 開始タイム [ms]
         this.endTime = data.endTime; // 終了タイム [ms]
@@ -145,6 +146,51 @@ class Lyric {
         this.pos.y += delta;
     }
 }
+
+
+/**
+ * 衝突判定用
+ */
+
+class collisionEffect {
+    constructor(x, y, effect_count) {
+        this.effect_count = effect_count;
+        var img = document.createElement('img');
+        img.id = "star" + this.effect_count;
+
+        img.src = 'pic/star.gif';
+        // イメージの大きさ
+        img.width = "100";
+        img.height = "100";
+
+        // スタイルの初期化
+        img.style.position = "absolute";
+        img.style.left = x - 40;
+        img.style.bottom = y;
+
+        // viewに爆発オブジェクトを追加
+        //if (document.getElementById("view")) {
+        document.getElementById("view").appendChild(img);
+
+
+    }
+
+    remove(id) {
+        var view = document.getElementById("view");
+        console.log("effect remove !!!!!!!!!!!   " + id);
+        if (view != null) {
+            view.removeChild(id);
+            console.log("effect remove !!!!!!!!!!!   " + id);
+
+        }
+    }
+
+    getId() {
+        return "star" + this.effect_count;
+    }
+
+}
+
 
 class CanvasManager {
     constructor() {
@@ -168,9 +214,11 @@ class CanvasManager {
         // ネギ管理
         this._negiList = [];
         this._negiCount = 0;
+        this._collisionEffectList = [];
+        this._collisionEffectCount = 0;
 
         var miku = document.getElementById("miku");
-        this._mikuPos = new Point(this._space/2, 0);
+        this._mikuPos = new Point(this._space / 2, 0);
         miku.style.left = this._mikuPos.x;
 
         // キャンバス生成（描画エリア）
@@ -218,6 +266,38 @@ class CanvasManager {
         this._drawLyrics();
 
         this._position = position;
+
+
+
+        var collisionEffectList = this._collisionEffectList;
+        if (collisionEffectList.length > 0) {
+            collisionEffectList.forEach(function(collisionEffect, index) {
+                console.log(collisionEffect);
+                console.log("hogheohgoehgoehgoe");
+                console.log(this._collisionEffectList);
+                collisionEffect.remove(collisionEffect.getId());
+            });
+        }
+
+        // todo うまくインスタンスから取得する
+        // for (let i = 0; i <= this._collisionEffectCount; i++) {
+
+        //     var view = document.getElementById("view");
+        //     if (view != null) {
+        //         var id = 'star' + i;
+        //         console.log("delete:" + id);
+        //         var selfNode = document.getElementById(id);
+        //         view.removeChild(selfNode);
+        //     }
+
+        //     // console.log(this._collisionEffectCount);
+
+        //     // console.log("count  !!!!" + id)
+
+        //     // document.getElementById("view").removeChild(id);
+        // }
+
+
     }
 
     // 歌詞のアップデート
@@ -237,12 +317,12 @@ class CanvasManager {
         // @todo リリース時は非表示
         this._negiList.forEach((negi, index) => {
             this._ctx.beginPath();
-            this._ctx.arc(negi.getX(), window.innerHeight - negi.getY(), 40, 0, 2*Math.PI)
+            this._ctx.arc(negi.getX(), window.innerHeight - negi.getY(), 40, 0, 2 * Math.PI)
             this._ctx.stroke();
         });
         // 画面外に出ていたら削除
         this._negiList = this._negiList.filter(negi => {
-            if(negi.isRemoved()) {
+            if (negi.isRemoved()) {
                 return false;
             }
 
@@ -307,9 +387,9 @@ class CanvasManager {
         miku.style.left = this._mikuPos.x;
     }
     throwNegi(key_code) {
-        // エンターキーが押されたらネギを投げる
-        if (key_code === 13) {
-    
+        // スペースキーが押されたらネギを投げる
+        if (key_code === 32) {
+
             // 投げるネギの生成
             let Negi = require("./character");
             this._negiList.push(new Negi(this._negiCount));
@@ -365,6 +445,20 @@ class CanvasManager {
             if (lyric.startTime < position) { // 開始タイム < 再生位置
                 if (position < lyric.endTime) { // 再生位置 < 終了タイム
                     if (!isNaN(this._mouseX) && !lyric.isDraw) {
+                        if (lyric.text != "") {
+                            lyric.isDraw = true;
+                        }
+                        // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる．フレーズの変わり目の場合は左端から表示させる．）
+                        var preLyric = this._lyrics[Math.max(0, i-1)];
+                        var parentWord = lyric.char.parent;
+                        var parentPhrase = parentWord.parent;
+                        var nextX = Math.floor(-this._px + preLyric.startPos.x + (parentWord.charCount - parentWord.findIndex(lyric.char) + 1) * space);
+                        if (nextX < this._stw && parentPhrase.firstChar != lyric.char && 0 < i) {
+                            lyric.startPos.x = preLyric.startPos.x + space;
+                        } else {
+                            lyric.startPos.x = 0;
+                        }
+
                         // グリッド座標の計算
                         var nx = Math.floor((-this._px + lyric.startPos.x) / space);
                         var ny = Math.floor((-this._py + lyric.startPos.y) / space);
@@ -405,9 +499,6 @@ class CanvasManager {
                             // グリッド座標をセット＆描画を有効に
                         lyric.pos.x = nx + tx;
                         lyric.pos.y = ny + ty;
-                        if (lyric.text != "") {
-                            lyric.isDraw = true;
-                        }
                     }
                 }
 
@@ -436,11 +527,16 @@ class CanvasManager {
                         // あたり判定
                         if (lyric.text != "" && negi_x >= px - 40 && negi_x <= px + 40 &&
                             negi_y >= py - 40 && negi_y <= py + 40) {
-                            //console.log("lyric text : " + lyric.text + "***************************");
 
                             lyric.text = "";
                             lyric.isDraw = false;
                             negi.removeDocument();
+
+                            // 当たったのエフェクト追加
+                            this._collisionEffectList.push(new collisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
+                            console.log(this._collisionEffectList);
+                            this._collisionEffectCount++;
+
                         }
                     }
                     var prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));
