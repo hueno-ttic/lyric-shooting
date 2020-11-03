@@ -131,6 +131,7 @@ class Main {
  */
 class Lyric {
     constructor(data, startPos) {
+        this.char = data; // 歌詞データ
         this.text = data.text; // 歌詞文字
         this.startTime = data.startTime; // 開始タイム [ms]
         this.endTime = data.endTime; // 終了タイム [ms]
@@ -444,6 +445,20 @@ class CanvasManager {
             if (lyric.startTime < position) { // 開始タイム < 再生位置
                 if (position < lyric.endTime) { // 再生位置 < 終了タイム
                     if (!isNaN(this._mouseX) && !lyric.isDraw) {
+                        if (lyric.text != "") {
+                            lyric.isDraw = true;
+                        }
+                        // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる．フレーズの変わり目の場合は左端から表示させる．）
+                        var preLyric = this._lyrics[Math.max(0, i-1)];
+                        var parentWord = lyric.char.parent;
+                        var parentPhrase = parentWord.parent;
+                        var nextX = Math.floor(-this._px + preLyric.startPos.x + (parentWord.charCount - parentWord.findIndex(lyric.char) + 1) * space);
+                        if (nextX < this._stw && parentPhrase.firstChar != lyric.char && 0 < i) {
+                            lyric.startPos.x = preLyric.startPos.x + space;
+                        } else {
+                            lyric.startPos.x = 0;
+                        }
+
                         // グリッド座標の計算
                         var nx = Math.floor((-this._px + lyric.startPos.x) / space);
                         var ny = Math.floor((-this._py + lyric.startPos.y) / space);
@@ -484,9 +499,6 @@ class CanvasManager {
                             // グリッド座標をセット＆描画を有効に
                         lyric.pos.x = nx + tx;
                         lyric.pos.y = ny + ty;
-                        if (lyric.text != "") {
-                            lyric.isDraw = true;
-                        }
                     }
                 }
 
