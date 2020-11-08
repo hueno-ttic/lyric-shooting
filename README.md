@@ -49,3 +49,6 @@ TextAlive App API について詳しくはWebサイト [TextAlive for Developers
 - email: tsukasa.hiroshi@gmail.com
 - twitter: @super_reader
 
+## 開発メンバー
+super_reader
+ya2ha4
