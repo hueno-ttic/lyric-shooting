@@ -502,13 +502,12 @@ class CanvasManager {
      */
     moveMiku(key_code) {
         let miku = document.getElementById("miku");
-        // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
         // 左ボタン
-        if (key_code === 37 && 0 <= parseInt(miku.style.left) - this._space) {
+        if (key_code === 37 && 0 <= parseInt(miku.style.left, 10) - this._space) {
             this._mikuPos.x -= this._space;
         }
         // 右ボタン
-        if (key_code === 39 && window.innerWidth > parseInt(miku.style.left) + this._space) {
+        if (key_code === 39 && window.innerWidth > parseInt(miku.style.left, 10) + this._space) {
             this._mikuPos.x += this._space;
         }
         miku.style.left = this._mikuPos.x;

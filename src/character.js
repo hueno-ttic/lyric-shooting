@@ -34,9 +34,8 @@ class Negi {
 
         // ネギの初期生成位置
         const miku = document.getElementById("miku");
-        // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
-        this.setX(parseInt(miku.style.left) + 0);
-        this.setY(parseInt(miku.style.bottom) + miku.height);
+        this.setX(parseInt(miku.style.left, 10) + 0);
+        this.setY(parseInt(miku.style.bottom, 10) + miku.height);
 
     }
 
@@ -125,8 +124,7 @@ class Negi {
      */
     getLeft() {
         const selfElement = document.getElementById(this.getId());
-        // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
-        return parseInt(selfElement.style.left);
+        return parseInt(selfElement.style.left, 10);
     }
 
 
@@ -164,8 +162,7 @@ class Negi {
      */
     getBottom() {
         const selfElement = document.getElementById(this.getId());
-        // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
-        return parseInt(selfElement.style.bottom);
+        return parseInt(selfElement.style.bottom, 10);
     }
 
 
