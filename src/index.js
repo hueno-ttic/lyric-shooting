@@ -236,7 +236,7 @@ class Lyric {
 /**
  * Lyric及びNegi衝突時のエフェクトクラス．
  */
-class collisionEffect {
+class CollisionEffect {
     /**
      * @constructor
      * @param {Number} x 描画時のX座標．（Element.style.leftにて表示位置を指定する用）
@@ -758,7 +758,7 @@ class CanvasManager {
                             negi.removeDocument();
 
                             // 当たったのエフェクト追加
-                            this._collisionEffectList.push(new collisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
+                            this._collisionEffectList.push(new CollisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
                             this._collisionEffectCount++;
                         }
                     }
