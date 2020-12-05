@@ -267,11 +267,15 @@ class CollisionEffect {
 
     /**
      * 更新処理．
-     * 後で同名の関数 update() が定義されておりそちらが使われる為，不使用関数．
      * @param {Number} delta 前回呼び出し時からの時間差分[ms]
      */
     update(delta) {
         // @todo エフェクトの再生処理
+        // 本来はこちらで処理落ち対応で delta を考慮して remove() すべきですが，コンテスト時の挙動から変えない為 update() の処理をこちら側へそのまま引用
+        this.time_count++;
+        if (this.time_count >= 30) {
+            this.remove(this.getId());
+        }
     }
 
 
@@ -286,17 +290,6 @@ class CollisionEffect {
                 view.removeChild(selfNode);
                 delete this;
             }
-        }
-    }
-
-
-    /**
-     * 更新処理．
-     */
-    update() {
-        this.time_count++;
-        if (this.time_count >= 30) {
-            this.remove(this.getId());
         }
     }
 
@@ -324,16 +317,7 @@ class CanvasManager {
         this._ctx = this._can.getContext("2d");
         document.getElementById("view").append(this._can);
 
-        // マウス（タッチ）イベント
-        document.addEventListener("mousemove", (e) => this._move(e));
-        document.addEventListener("mouseleave", (e) => this._leave(e));
-        if ("ontouchstart" in window) {
-            // グリッドの大きさ／スクロール速度半分
-            this._space *= 0.1;
-            this._speed *= 0.1;
-            document.addEventListener("touchmove", (e) => this._move(e));
-            document.addEventListener("touchend", (e) => this._leave(e));
-        }
+        // キーボードイベント
         document.addEventListener("keydown", (e) => this._keydown(e));
 
         this._lyrics = [];
@@ -352,9 +336,6 @@ class CanvasManager {
         // 現在のスクロール位置（画面右上基準）．実質const値．
         this._px = 0;
         this._py = 0;
-        // マウス位置（中心が 0, -1 ~ 1 の範囲に正規化された値）．アプリ内では使用していない不要変数．
-        this._rx = 0;
-        this._ry = 0;
 
         // １グリッドの大きさ [px]
         this._space = 160;
@@ -363,8 +344,6 @@ class CanvasManager {
         this._speed = 160;
         // 楽曲の再生位置
         this._position = 0;
-        // マウスが画面上にあるかどうか（画面外の場合 false）．アプリ内では使用していない不要変数．
-        this._isOver = false;
 
         this._lyrics.forEach((lyric) => {
             lyric.initialize();
@@ -504,42 +483,6 @@ class CanvasManager {
 
 
     /**
-     * マウス操作時 "mousemove" / "touchmove" のコールバック．
-     * 本アプリではマウス操作時のパラメータは使用していない為，本来は不要の処理になります．
-     * @param {MouseEvent} e マウスイベント
-     */
-    _move(e) {
-        let mx = 0;
-        let my = 0;
-
-        if (e.touches) {
-            mx = e.touches[0].clientX;
-            my = e.touches[0].clientY;
-        } else {
-            mx = e.clientX;
-            my = e.clientY;
-        }
-        this._mouseX = mx;
-        this._mouseY = my;
-
-        this._rx = (mx / this._stw) * 2 - 1;
-        this._ry = (my / this._sth) * 2 - 1;
-
-        this._isOver = true;
-    }
-
-
-    /**
-     * マウス操作時 "mouseleave" / "touchend" のコールバック．
-     * 本アプリではマウス操作時のパラメータは使用していない為，本来は不要の処理になります．
-     * @param {MouseEvent} e マウスイベント
-     */
-    _leave(e) {
-        this._isOver = false;
-    }
-
-
-    /**
      * キーボード操作時 "keydown" のコールバック．
      * @param {KeyboardEvent} e キーボードイベント
      */
@@ -605,38 +548,12 @@ class CanvasManager {
 
 
     /**
-     * 不使用関数．
-     */
-    _isKanji() {
-        return true;
-    }
-
-
     /**
      * 背景の模様描画．
      */
     _drawBg() {
-        const space = this._space;
-
-        const ox = this._px % space;
-        const oy = this._py % space;
-
-        const nx = this._stw / space + 1;
-        const ny = this._sth / space + 1;
-
         let ctx = this._ctx;
         ctx.clearRect(0, 0, this._stw, this._sth);
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-
-        for (let y = 0; y <= ny; y++) {
-            for (let x = 0; x <= nx; x++) {
-                const tx = x * space + ox;
-                const ty = y * space + oy;
-            }
-        }
-        ctx.stroke();
     }
 
 
