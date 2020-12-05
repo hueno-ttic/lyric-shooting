@@ -6,8 +6,16 @@ import { Player, Point, stringToDataUrl } from "textalive-app-api";
  * 
  */
 
-var music_url;
+// 再生用動画URL
+ var music_url;
+
+ /**
+  * TextAliveAPI用初期化処理，インスタンス生成，コールバック登録用クラス．
+  */
 class Main {
+    /**
+     * @constructor
+     */
     constructor() {
         var canMng = new CanvasManager();
         this._canMng = canMng;
@@ -21,7 +29,10 @@ class Main {
         this._position = 0;
     }
 
-    // プレイヤー初期化
+
+    /**
+     * TextAliveAPI Player初期化．
+     */
     _initPlayer() {
         var player = new Player({
             app: {
@@ -41,12 +52,14 @@ class Main {
         this._player = player;
     }
 
-    // アプリ準備完了
+
+    /**
+     * アプリ準備完了（TextAliveホスト接続時のコールバック）．
+     * @param {IPlayerApp} app TextAliveAPI アプリ情報
+     */
     _onAppReady(app) {
         if (!app.songUrl) {
-            //this._player.createFromSongUrl("http://www.youtube.com/watch?v=ygY2qObZv24");
             this._player.createFromSongUrl(music_url);
-            // }
         }
 
         // ボタンクリック時の処理
@@ -69,11 +82,13 @@ class Main {
             player.requestMediaSeek(0);
             canMng.initialize();
         }(this._player, this._canMng));
-
-
     }
 
-    // ビデオ準備完了
+
+    /**
+     * ビデオ準備完了（動画オブジェクト準備完了時のコールバック）．
+     * @param {IVideo} v TextAliveAPI 動画オブジェクト
+     */
     _onVideoReady(v) {
         // 歌詞のセットアップ
         var lyrics = [];
@@ -94,14 +109,22 @@ class Main {
         this._duration = v.duration;
     }
 
-    // 再生準備完了
+
+    /**
+     * 再生準備完了（動画再生の為の Timer 準備完了時のコールバック）．
+     * @param {Timer} timer TextAliveAPI タイマーオブジェクト
+     */
     _onTimerReady(timer) {
         // ボタンを有効化する
         document.querySelectorAll("button")
             .forEach((btn) => (btn.disabled = false));
     }
 
-    // 再生位置アップデート
+
+    /**
+     * 再生位置アップデート（動画再生位置変更時のコールバック）．
+     * @param {Number} position 動画再生位置[ms]
+     */
     _onTimeUpdate(position) {
         this._position = position;
         this._updateTime = Date.now();
@@ -130,9 +153,12 @@ class Main {
                 body.background = "pic/wallmiku.png";
             }
         }
-
     }
 
+
+    /**
+     * 更新処理．
+     */
     _update() {
         if (this._player.isPlaying && 0 <= this._updateTime && 0 <= this._position) {
             var t = (Date.now() - this._updateTime) + this._position;
@@ -142,6 +168,12 @@ class Main {
         window.requestAnimationFrame(() => this._update());
     }
 
+
+    /**
+     * 楽曲速度の更新．
+     * 曲の速度によって歌詞の落下速度を調整する予定でしたがプログラミングコンテスト投稿時はCanvasManager側でパラメータを反映させていない為，無意味な関数となっています．
+     * @param {Number} position 動画再生位置[ms]
+     */
     _updateSpeed(position) {
         // ビートに合わせて移動速度の設定
         var beat = this._player.findBeat(position);
@@ -150,15 +182,25 @@ class Main {
         }
     }
 
+
+    /**
+     * ウィンドウリサイズ時のコールバック．
+     */
     _resize() {
         this._canMng.resize();
     }
 }
 
+
 /**
  * 歌詞（1文字）クラス．
  */
 class Lyric {
+    /**
+     * @constructor
+     * @param {IChar} data TextAliveAPI 歌詞情報（1文字）
+     * @param {Number} startPos 歌詞再生開始タイミング[ms]．IChar.startTimeから取得できる為，実質不要な引数．
+     */
     constructor(data, startPos) {
         this.char = data; // 歌詞データ
         this.text = data.text; // 歌詞文字
@@ -170,12 +212,21 @@ class Lyric {
         this.initialize();
     }
 
+
+    /**
+     * 最初から実行用初期化処理．
+     */
     initialize() {
         this.pos = new Point(0, 0); // グリッドの座標
         this.isDraw = false; // 描画するかどうか
         this.isCollided = false; // 衝突済みかどうか
     }
 
+
+    /**
+     * 更新処理．
+     * @param {Number} delta 前回呼び出し時からの時間差分[ms]
+     */
     update(delta) {
         this.pos.y += delta;
     }
@@ -183,11 +234,15 @@ class Lyric {
 
 
 /**
- * 衝突判定用
+ * Lyric及びNegi衝突時のエフェクトクラス．
  */
-
 class collisionEffect {
-
+    /**
+     * @constructor
+     * @param {Number} x 描画時のX座標．（Element.style.leftにて表示位置を指定する用）
+     * @param {Number} y 描画時のY座標．（Element.style.bottomにて表示位置を指定する用）
+     * @param {Number} effect_count 管理用ID．本引数は new する毎に必ずユニークな値を割り振る必要があります．（Element.id 用のIDに用いる為）
+     */
     constructor(x, y, effect_count) {
         this.effect_count = effect_count;
         this.img = document.createElement('img');
@@ -209,10 +264,20 @@ class collisionEffect {
         document.getElementById("view").appendChild(this.img);
     }
 
+
+    /**
+     * 更新処理．
+     * 後で同名の関数 update() が定義されておりそちらが使われる為，不使用関数．
+     * @param {Number} delta 前回呼び出し時からの時間差分[ms]
+     */
     update(delta) {
         // @todo エフェクトの再生処理
     }
 
+
+    /**
+     * 削除処理．
+     */
     remove() {
         var view = document.getElementById("view");
         if (view != null) {
@@ -223,22 +288,36 @@ class collisionEffect {
             }
         }
     }
+
+
+    /**
+     * 更新処理．
+     */
     update() {
         this.time_count++;
         if (this.time_count >= 30) {
             this.remove(this.getId());
         }
-
     }
 
+
+    /**
+     * ドキュメント内 Element アクセス用ID取得．
+     * @returns {String} Element アクセス用ID
+     */
     getId() {
         return "star" + this.effect_count;
     }
-
 }
 
 
+/**
+ * ドキュメント内のcanvas管理クラス．
+ */
 class CanvasManager {
+    /**
+     * @constructor
+     */
     constructor() {
         // キャンバス生成（描画エリア）
         this._can = document.createElement("canvas");
@@ -265,22 +344,26 @@ class CanvasManager {
         this.initialize();
     }
 
+
+    /**
+     * 最初から実行用初期化処理．
+     */
     initialize() {
-        // 現在のスクロール位置（画面右上基準）
+        // 現在のスクロール位置（画面右上基準）．実質const値．
         this._px = 0;
         this._py = 0;
-        // マウス位置（中心が 0, -1 ~ 1 の範囲に正規化された値）
+        // マウス位置（中心が 0, -1 ~ 1 の範囲に正規化された値）．アプリ内では使用していない不要変数．
         this._rx = 0;
         this._ry = 0;
 
         // １グリッドの大きさ [px]
         this._space = 160;
-        // スクロール速度(BPM:160相当)
+        // スクロール速度(BPM:160相当)．アプリ内では使用していない不要変数．
         this.setSpeed(60 * 1000 / 160);
         this._speed = 160;
         // 楽曲の再生位置
         this._position = 0;
-        // マウスが画面上にあるかどうか（画面外の場合 false）
+        // マウスが画面上にあるかどうか（画面外の場合 false）．アプリ内では使用していない不要変数．
         this._isOver = false;
 
         this._lyrics.forEach((lyric) => {
@@ -305,26 +388,41 @@ class CanvasManager {
         this._score = 0;
         this.setScoreText(this._score);
 
+        // ミクさんの初期設定
         var miku = document.getElementById("miku");
         miku.src = "pic/miku.gif";
         this._mikuPos = new Point(this._space / 2, 0);
         miku.style.left = this._mikuPos.x;
+
         this.resize();
     }
 
-    // 歌詞の更新
+
+    /**
+     * 歌詞情報の設定．
+     * @param {Lyric[]} lyrics 1曲分の歌詞情報
+     */
     setLyrics(lyrics) {
         this._lyrics = lyrics;
     }
 
-    // スクロール速度の更新
+
+    /**
+     * スクロール速度の設定．
+     * 本来は曲のテンポに合わせ歌詞の落下速度を調整予定でしたがプログラミングコンテスト対象の3曲のみであればこのパラメータの反映をしない方が調整しやすいと判断した為，呼び出しても速度は反映されません．
+     * @param {Number} durationMs 
+     */
     setSpeed(durationMs) {
         var bpm = 1000.0 / durationMs * 60.0;
         // @todo BPMの上限下限およびバイアス値の調整
         this._speed = 4.0 * clamp(bpm, 20, 360);
     }
 
-    // 再生位置アップデート
+
+    /**
+     * 再生位置アップデート．
+     * @param {Number} delta 前回呼び出し時からの時間差分[ms]
+     */
     update(position) {
         var delta = (position - this._position) / 1000;
         // @todo this._speed の反映（歌詞，ネギの更新）
@@ -338,14 +436,22 @@ class CanvasManager {
         this._position = position;
     }
 
-    // 歌詞のアップデート
+
+    /**
+     * 歌詞のアップデート．
+     * @param {Number} delta 前回呼び出し時からの時間差分[ms]
+     */
     _updateLyric(delta) {
         this._lyrics.forEach((lyric, index) => {
             lyric.update(delta);
         }, (delta));
     }
 
-    // ネギのアップデート
+
+    /**
+     * ネギ（撃ったオブジェクト）のアップデート．
+     * @param {Number} delta 前回呼び出し時からの時間差分[ms]
+     */
     _updateNegi(delta) {
         // ネギ更新処理
         this._negiList.forEach((negi, index) => {
@@ -372,7 +478,11 @@ class CanvasManager {
         });
     }
 
-    // 歌詞とネギの衝突時エフェクトアップデート
+
+    /**
+     * 歌詞とネギ（撃ったオブジェクト）の衝突時エフェクトアップデート．
+     * @param {Number} delta 前回呼び出し時からの時間差分[ms]
+     */
     _updateCollisionEffect(delta) {
         this._collisionEffectList.forEach((collisionEffect, index) => {
             collisionEffect.update(delta);
@@ -383,13 +493,21 @@ class CanvasManager {
         });
     }
 
-    // リサイズ
+
+    /**
+     * ウィンドウリサイズ時のコールバック．
+     */
     resize() {
         this._can.width = this._stw = document.documentElement.clientWidth;
         this._can.height = this._sth = document.documentElement.clientHeight;
     }
 
-    // "mousemove" / "touchmove"
+
+    /**
+     * マウス操作時 "mousemove" / "touchmove" のコールバック．
+     * 本アプリではマウス操作時のパラメータは使用していない為，本来は不要の処理になります．
+     * @param {MouseEvent} e マウスイベント
+     */
     _move(e) {
         var mx = 0;
         var my = 0;
@@ -410,21 +528,38 @@ class CanvasManager {
         this._isOver = true;
     }
 
-    // "mouseleave" / "touchend"
+
+    /**
+     * マウス操作時 "mouseleave" / "touchend" のコールバック．
+     * 本アプリではマウス操作時のパラメータは使用していない為，本来は不要の処理になります．
+     * @param {MouseEvent} e マウスイベント
+     */
     _leave(e) {
         this._isOver = false;
     }
 
-    // "keydown"
+
+    /**
+     * キーボード操作時 "keydown" のコールバック．
+     * @param {KeyboardEvent} e キーボードイベント
+     */
     _keydown(e) {
+        // KeyboardEvent.keyCode は非推奨のパラメータになります．本来は KeyboardEvent.key を使用することが推奨されています．
+        // プログラミングコンテスト投稿時はブラウザ Chrome, Edge, Safari かつ QWERTY配列キーボードで動作することのみ確認していました．
         // ミクを動かす
         this.moveMiku(e.keyCode);
         // ネギを投げるか
         this.throwNegi(e.keyCode);
     }
 
+
+    /**
+     * ミクさんの移動処理．
+     * @param {Number} key_code 押されたキーの数値コード
+     */
     moveMiku(key_code) {
         var miku = document.getElementById("miku");
+        // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
         // 左ボタン
         if (key_code === 37 && 0 <= parseInt(miku.style.left) - this._space) {
             this._mikuPos.x -= this._space;
@@ -435,6 +570,12 @@ class CanvasManager {
         }
         miku.style.left = this._mikuPos.x;
     }
+
+
+    /**
+     * ネギ（撃ったオブジェクト）の生成処理．
+     * @param {Number} key_code 押されたキーの数値コード
+     */
     throwNegi(key_code) {
         // スペースキーが押されたらネギを投げる
         if (key_code === 32) {
@@ -453,17 +594,27 @@ class CanvasManager {
     }
 
 
+    /**
+     * スコア表示更新．
+     * @param {Number} score 現在スコア
+     */
     setScoreText(score) {
         var scoreElement = document.getElementById("score");
         scoreElement.textContent = "  SCORE : " + score;
     }
 
+
+    /**
+     * 不使用関数．
+     */
     _isKanji() {
         return true;
-
     }
 
-    // 背景の模様描画
+
+    /**
+     * 背景の模様描画．
+     */
     _drawBg() {
         var space = this._space;
 
@@ -488,7 +639,11 @@ class CanvasManager {
         ctx.stroke();
     }
 
-    // 歌詞の描画
+
+    /**
+     * 歌詞の描画．
+     * 描画処理内ですが歌詞の位置計算，歌詞とネギ（撃ったオブジェクト）との衝突判定，衝突時処理も行っています．
+     */
     _drawLyrics() {
         if (!this._lyrics) return;
         var position = this._position;
@@ -510,6 +665,7 @@ class CanvasManager {
                         } else {
                             continue;
                         }
+
                         // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる．フレーズの変わり目の場合は左端から表示させる．）
                         var preLyric = this._lyrics[Math.max(0, i - 1)];
                         var parentWord = lyric.char.parent;
@@ -558,7 +714,7 @@ class CanvasManager {
                                     if (ty == n || ty == -n) my = -my;
                                 }
                             }
-                            // グリッド座標をセット＆描画を有効に
+                        // グリッド座標をセット＆描画を有効に
                         lyric.pos.x = nx + tx;
                         lyric.pos.y = ny + ty;
                     }
@@ -588,8 +744,6 @@ class CanvasManager {
                         // あたり判定
                         if (lyric.isCollided == false && negi_x >= px - 40 && negi_x <= px + 40 &&
                             negi_y >= py - 40 && negi_y <= py + 40) {
-
-
                             // スコアの更新
                             var regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
                             if (lyric.text.match(regexp)) {
@@ -627,6 +781,14 @@ class CanvasManager {
     _easeOutBack(x) { return 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2); }
 }
 
+
+/**
+ * 値を上限および下限値の範囲内に収めた値として取得．
+ * @param {Number} val 値
+ * @param {Number} min 上限値
+ * @param {Number} max 下限値
+ * @returns {Number} [min, max] 区間内におけるvalの近似値
+ */
 function clamp(val, min, max) {
     if (max < min) {
         var t = min;
@@ -635,12 +797,16 @@ function clamp(val, min, max) {
     }
     return Math.min(max, Math.max(min, val));
 }
+
+
+// ---- 以下，選曲時のボタン処理 ----
 // 愛されなくても君がいる
 document.getElementById("ygY2qObZv24").onclick = function() {
     music_url = "http://www.youtube.com/watch?v=ygY2qObZv24";
     selectMusicDone();
     new Main()
 };
+
 
 // ブレス・ユア・ブレス
 document.getElementById("a-Nf3QUFkOU").onclick = function() {
@@ -649,12 +815,14 @@ document.getElementById("a-Nf3QUFkOU").onclick = function() {
     new Main()
 };
 
+
 // グリーンライツ・セレナーデ
 document.getElementById("XSLhsjepelI").onclick = function() {
     music_url = "http://www.youtube.com/watch?v=XSLhsjepelI";
     selectMusicDone();
     new Main()
 };
+
 
 function selectMusicDone() {
     document.getElementById("ygY2qObZv24").style.display = "none";
@@ -668,5 +836,4 @@ function selectMusicDone() {
     score.textContent = "SCORE : 0";
 
     document.getElementById("view").appendChild(score);
-    //    <font size="20" id="score" display="none">  <b>SCORE</b> : 0</font><br></br>
 }
