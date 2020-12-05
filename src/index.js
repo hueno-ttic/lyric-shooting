@@ -77,7 +77,8 @@ class Main {
     _onVideoReady(v) {
         // 歌詞のセットアップ
         var lyrics = [];
-        // @todo 表示歌詞の調整．フレーズ単位で横に並べると画面外に出るので単語単位でいい感じの区切り方にしたい．
+        // 歌詞を単語単位で左端から表示するよう座標を仮設定
+        // CanvasManager::_drawLyrics() にて表示する際，ウィンドウ内に収まれば左端から表示しないよう座標の調整を行う
         if (v.firstWord) {
             var word = v.firstWord;
             while (word) {
@@ -106,7 +107,9 @@ class Main {
         this._updateTime = Date.now();
         this._canMng.update(position);
 
-        // キャラチェンジ演出
+        // キャラチェンジ演出（背景，プレイヤー操作のミクさん，撃つオブジェクトの切り替え）
+        // サビの場合：マジカルミライ2020衣装のミクさんが扇を撃つ
+        // サビ以外の場合：通常衣装のミクさんがネギを撃つ
         if (this._player.findChorus(position) != null) {
             var miku = document.getElementById("miku");
             if (miku.src.includes("pic/miku.gif")) {
