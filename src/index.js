@@ -17,7 +17,7 @@ class Main {
      * @constructor
      */
     constructor() {
-        var canMng = new CanvasManager();
+        const canMng = new CanvasManager();
         this._canMng = canMng;
 
         this._initPlayer();
@@ -34,7 +34,7 @@ class Main {
      * TextAliveAPI Player初期化．
      */
     _initPlayer() {
-        var player = new Player({
+        let player = new Player({
             app: {
                 appAuthor: "TTIC",
                 appName: "Lyric Shooting!!",
@@ -91,13 +91,13 @@ class Main {
      */
     _onVideoReady(v) {
         // 歌詞のセットアップ
-        var lyrics = [];
+        let lyrics = [];
         // 歌詞を単語単位で左端から表示するよう座標を仮設定
         // CanvasManager::_drawLyrics() にて表示する際，ウィンドウ内に収まれば左端から表示しないよう座標の調整を行う
         if (v.firstWord) {
-            var word = v.firstWord;
+            let word = v.firstWord;
             while (word) {
-                var lyricChar = word.firstChar;
+                let lyricChar = word.firstChar;
                 for (let i = 0; i < word.charCount; i++) {
                     lyrics.push(new Lyric(lyricChar, new Point(i * 160, 80)));
                     lyricChar = lyricChar.next;
@@ -134,22 +134,22 @@ class Main {
         // サビの場合：マジカルミライ2020衣装のミクさんが扇を撃つ
         // サビ以外の場合：通常衣装のミクさんがネギを撃つ
         if (this._player.findChorus(position) != null) {
-            var miku = document.getElementById("miku");
+            let miku = document.getElementById("miku");
             if (miku.src.includes("pic/miku.gif")) {
 
                 miku.src = "pic/2020miku.gif";
                 this._canMng.negiSrc = "pic/ogi.png";
-                var body = document.getElementById("body");
+                let body = document.getElementById("body");
                 body.background = "pic/wall2020miku.png";
             }
 
         } else {
-            var miku = document.getElementById("miku");
+            let miku = document.getElementById("miku");
             if (!miku.src.includes("pic/miku.gif")) {
 
                 miku.src = "pic/miku.gif ";
                 this._canMng.negiSrc = "pic/negi.png";
-                var body = document.getElementById("body");
+                let body = document.getElementById("body");
                 body.background = "pic/wallmiku.png";
             }
         }
@@ -161,7 +161,7 @@ class Main {
      */
     _update() {
         if (this._player.isPlaying && 0 <= this._updateTime && 0 <= this._position) {
-            var t = (Date.now() - this._updateTime) + this._position;
+            const t = (Date.now() - this._updateTime) + this._position;
             this._updateSpeed(t);
             this._canMng.update(t);
         }
@@ -176,7 +176,7 @@ class Main {
      */
     _updateSpeed(position) {
         // ビートに合わせて移動速度の設定
-        var beat = this._player.findBeat(position);
+        const beat = this._player.findBeat(position);
         if (beat) {
             this._canMng.setSpeed(beat.duration);
         }
@@ -279,9 +279,9 @@ class CollisionEffect {
      * 削除処理．
      */
     remove() {
-        var view = document.getElementById("view");
+        let view = document.getElementById("view");
         if (view != null) {
-            var selfNode = document.getElementById(this.getId());
+            const selfNode = document.getElementById(this.getId());
             if (selfNode) {
                 view.removeChild(selfNode);
                 delete this;
@@ -389,7 +389,7 @@ class CanvasManager {
         this.setScoreText(this._score);
 
         // ミクさんの初期設定
-        var miku = document.getElementById("miku");
+        let miku = document.getElementById("miku");
         miku.src = "pic/miku.gif";
         this._mikuPos = new Point(this._space / 2, 0);
         miku.style.left = this._mikuPos.x;
@@ -413,7 +413,7 @@ class CanvasManager {
      * @param {Number} durationMs 
      */
     setSpeed(durationMs) {
-        var bpm = 1000.0 / durationMs * 60.0;
+        const bpm = 1000.0 / durationMs * 60.0;
         // @todo BPMの上限下限およびバイアス値の調整
         this._speed = 4.0 * clamp(bpm, 20, 360);
     }
@@ -424,7 +424,7 @@ class CanvasManager {
      * @param {Number} delta 前回呼び出し時からの時間差分[ms]
      */
     update(position) {
-        var delta = (position - this._position) / 1000;
+        const delta = (position - this._position) / 1000;
         // @todo this._speed の反映（歌詞，ネギの更新）
         this._updateLyric(delta);
         this._updateNegi(delta);
@@ -470,7 +470,7 @@ class CanvasManager {
                 return false;
             }
 
-            var ret = negi.getY() < window.innerHeight;
+            const ret = negi.getY() < window.innerHeight;
             if (ret == false) {
                 negi.removeDocument();
             }
@@ -509,8 +509,8 @@ class CanvasManager {
      * @param {MouseEvent} e マウスイベント
      */
     _move(e) {
-        var mx = 0;
-        var my = 0;
+        let mx = 0;
+        let my = 0;
 
         if (e.touches) {
             mx = e.touches[0].clientX;
@@ -558,7 +558,7 @@ class CanvasManager {
      * @param {Number} key_code 押されたキーの数値コード
      */
     moveMiku(key_code) {
-        var miku = document.getElementById("miku");
+        let miku = document.getElementById("miku");
         // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
         // 左ボタン
         if (key_code === 37 && 0 <= parseInt(miku.style.left) - this._space) {
@@ -582,7 +582,7 @@ class CanvasManager {
 
             // 投げるネギの生成
             let Negi = require("./character");
-            var src = "";
+            let src = "";
             if (this.negiSrc != "") {
                 src = this.negiSrc;
             } else {
@@ -599,7 +599,7 @@ class CanvasManager {
      * @param {Number} score 現在スコア
      */
     setScoreText(score) {
-        var scoreElement = document.getElementById("score");
+        let scoreElement = document.getElementById("score");
         scoreElement.textContent = "  SCORE : " + score;
     }
 
@@ -616,24 +616,24 @@ class CanvasManager {
      * 背景の模様描画．
      */
     _drawBg() {
-        var space = this._space;
+        const space = this._space;
 
-        var ox = this._px % space;
-        var oy = this._py % space;
+        const ox = this._px % space;
+        const oy = this._py % space;
 
-        var nx = this._stw / space + 1;
-        var ny = this._sth / space + 1;
+        const nx = this._stw / space + 1;
+        const ny = this._sth / space + 1;
 
-        var ctx = this._ctx;
+        let ctx = this._ctx;
         ctx.clearRect(0, 0, this._stw, this._sth);
         ctx.strokeStyle = "#000";
         ctx.lineWidth = 1;
         ctx.beginPath();
 
-        for (var y = 0; y <= ny; y++) {
-            for (var x = 0; x <= nx; x++) {
-                var tx = x * space + ox;
-                var ty = y * space + oy;
+        for (let y = 0; y <= ny; y++) {
+            for (let x = 0; x <= nx; x++) {
+                const tx = x * space + ox;
+                const ty = y * space + oy;
             }
         }
         ctx.stroke();
@@ -646,17 +646,17 @@ class CanvasManager {
      */
     _drawLyrics() {
         if (!this._lyrics) return;
-        var position = this._position;
-        var space = this._space;
+        const position = this._position;
+        const space = this._space;
 
-        var fontSize = space * 0.5;
-        var ctx = this._ctx;
+        let fontSize = space * 0.5;
+        let ctx = this._ctx;
         ctx.textAlign = "center";
         ctx.fillStyle = "#000";
 
         // 全歌詞を走査
-        for (var i = 0, l = this._lyrics.length; i < l; i++) {
-            var lyric = this._lyrics[i];
+        for (let i = 0, l = this._lyrics.length; i < l; i++) {
+            let lyric = this._lyrics[i];
             if (lyric.startTime < position) { // 開始タイム < 再生位置
                 if (position < lyric.endTime) { // 再生位置 < 終了タイム
                     if (!lyric.isDraw) {
@@ -667,10 +667,10 @@ class CanvasManager {
                         }
 
                         // 歌詞出現位置の調整（可能な限り前の単語に続いて横並びで表示させる．フレーズの変わり目の場合は左端から表示させる．）
-                        var preLyric = this._lyrics[Math.max(0, i - 1)];
-                        var parentWord = lyric.char.parent;
-                        var parentPhrase = parentWord.parent;
-                        var nextX = Math.floor(-this._px + preLyric.startPos.x + (parentWord.charCount - parentWord.findIndex(lyric.char) + 1) * space);
+                        const preLyric = this._lyrics[Math.max(0, i - 1)];
+                        const parentWord = lyric.char.parent;
+                        const parentPhrase = parentWord.parent;
+                        const nextX = Math.floor(-this._px + preLyric.startPos.x + (parentWord.charCount - parentWord.findIndex(lyric.char) + 1) * space);
                         if (nextX < this._stw && parentPhrase.firstChar != lyric.char && 0 < i) {
                             lyric.startPos.x = preLyric.startPos.x + space;
                         } else {
@@ -678,26 +678,26 @@ class CanvasManager {
                         }
 
                         // グリッド座標の計算
-                        var nx = Math.floor((-this._px + lyric.startPos.x) / space);
-                        var ny = Math.floor((-this._py + lyric.startPos.y) / space);
+                        const nx = Math.floor((-this._px + lyric.startPos.x) / space);
+                        const ny = Math.floor((-this._py + lyric.startPos.y) / space);
 
-                        var tx = 0,
+                        let tx = 0,
                             ty = 0,
                             isOk = true;
 
                         // 他の歌詞との衝突判定
-                        hitcheck: for (var n = 0; n <= 100; n++) {
+                        hitcheck: for (let n = 0; n <= 100; n++) {
                                 tx = n;
                                 ty = 0;
-                                var mx = -1;
-                                var my = 1;
-                                var rn = (n == 0) ? 1 : n * 4;
+                                let mx = -1;
+                                let my = 1;
+                                const rn = (n == 0) ? 1 : n * 4;
 
                                 // 周囲を走査
-                                for (var r = 0; r < rn; r++) {
+                                for (let r = 0; r < rn; r++) {
                                     isOk = true;
-                                    for (var j = 0; j < i; j++) {
-                                        var tl = this._lyrics[j];
+                                    for (let j = 0; j < i; j++) {
+                                        const tl = this._lyrics[j];
 
                                         // 他の歌詞と衝突している
                                         if (tl.isDraw && tl.pos.x == nx + tx && tl.pos.y == ny + ty) {
@@ -722,8 +722,8 @@ class CanvasManager {
 
                 // 描画が有効な場合、歌詞を描画する
                 if (lyric.isDraw) {
-                    var px = lyric.pos.x * space;
-                    var py = lyric.pos.y * space;
+                    let px = lyric.pos.x * space;
+                    let py = lyric.pos.y * space;
 
                     // 文字が画面外にある場合は除外
                     if (px + space < -this._px || -this._px + this._stw < px) continue;
@@ -735,17 +735,17 @@ class CanvasManager {
 
                     // 衝突判定 
                     for (let j = 0; j < this._negiList.length; j++) {
-                        var negi = this._negiList[j];
+                        let negi = this._negiList[j];
                         if (negi.isRemoved()) {
                             continue;
                         }
-                        var negi_x = negi.getX();
-                        var negi_y = window.innerHeight - negi.getY();
+                        const negi_x = negi.getX();
+                        const negi_y = window.innerHeight - negi.getY();
                         // あたり判定
                         if (lyric.isCollided == false && negi_x >= px - 40 && negi_x <= px + 40 &&
                             negi_y >= py - 40 && negi_y <= py + 40) {
                             // スコアの更新
-                            var regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
+                            const regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
                             if (lyric.text.match(regexp)) {
                                 this._score += 1000;
                             } else {
@@ -762,9 +762,9 @@ class CanvasManager {
                             this._collisionEffectCount++;
                         }
                     }
-                    var prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));
+                    const prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));
 
-                    var regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
+                    let regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
                     if (lyric.text.match(regexp)) {
                         ctx.fillStyle = '#FF0000';
                     } else {
@@ -791,7 +791,7 @@ class CanvasManager {
  */
 function clamp(val, min, max) {
     if (max < min) {
-        var t = min;
+        const t = min;
         min = max;
         max = t;
     }
@@ -830,7 +830,7 @@ function selectMusicDone() {
     document.getElementById("XSLhsjepelI").style.display = "none";
     document.getElementById("play_img").style.display = "none";
 
-    var score = document.createElement("font");
+    let score = document.createElement("font");
     score.size = 20;
     score.id = "score";
     score.textContent = "SCORE : 0";

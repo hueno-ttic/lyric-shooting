@@ -15,7 +15,7 @@ class Negi {
         this.y = 0.0;
         this.count = negi_count;
         // ネギオブジェクトの初期設定
-        var img = document.createElement('img');
+        let img = document.createElement('img');
         img.id = this.getId();
 
         img.src = src_path;
@@ -33,7 +33,7 @@ class Negi {
         }
 
         // ネギの初期生成位置
-        var miku = document.getElementById("miku");
+        const miku = document.getElementById("miku");
         // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
         this.setX(parseInt(miku.style.left) + 0);
         this.setY(parseInt(miku.style.bottom) + miku.height);
@@ -46,9 +46,9 @@ class Negi {
      */
     removeDocument() {
         // ネギオブジェクトの削除
-        var view = document.getElementById("view");
+        let view = document.getElementById("view");
         if (view != null) {
-            var selfNode = document.getElementById(this.getId())
+            const selfNode = document.getElementById(this.getId())
             view.removeChild(selfNode);
         }
     }
@@ -59,9 +59,9 @@ class Negi {
      * @returns {Boolean} 削除済みの場合 true, 未削除の場合 false を返す
      */
     isRemoved() {
-        var view = document.getElementById("view");
+        const view = document.getElementById("view");
         if (view != null) {
-            var selfNode = document.getElementById(this.getId())
+            const selfNode = document.getElementById(this.getId())
             return selfNode == null;
         }
         return false;
@@ -73,7 +73,7 @@ class Negi {
      * @param {Number} delta 前回呼び出し時からの時間差分[ms]
      */
     update(delta) {
-        var character = document.getElementById(this.getId());
+        const character = document.getElementById(this.getId());
         if (character == null) {
             return;
         }
@@ -114,7 +114,7 @@ class Negi {
      * 描画位置（X軸）更新．
      */
     _reflectLeft() {
-        var selfElement = document.getElementById(this.getId());
+        let selfElement = document.getElementById(this.getId());
         selfElement.style.left = this.x - parseFloat(selfElement.width) / 2.0;
     }
 
@@ -124,7 +124,7 @@ class Negi {
      * @returns {Number} X座標
      */
     getLeft() {
-        var selfElement = document.getElementById(this.getId());
+        const selfElement = document.getElementById(this.getId());
         // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
         return parseInt(selfElement.style.left);
     }
@@ -153,7 +153,7 @@ class Negi {
      * 描画位置（Y軸）更新．
      */
     _reflectBottom() {
-        var selfElement = document.getElementById(this.getId());
+        let selfElement = document.getElementById(this.getId());
         selfElement.style.bottom = this.y - parseFloat(selfElement.height) / 2.0;
     }
 
@@ -163,7 +163,7 @@ class Negi {
      * @returns {Number} Y座標
      */
     getBottom() {
-        var selfElement = document.getElementById(this.getId());
+        const selfElement = document.getElementById(this.getId());
         // parseIntの引数 radix が省略されていますが 10 を指定するのが望ましいです
         return parseInt(selfElement.style.bottom);
     }
