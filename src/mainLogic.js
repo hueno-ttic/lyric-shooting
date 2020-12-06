@@ -6,20 +6,18 @@ import { Player, Point, stringToDataUrl } from "textalive-app-api";
  * 
  */
 
-// 再生用動画URL
- var music_url;
-
- /**
-  * TextAliveAPI用初期化処理，インスタンス生成，コールバック登録用クラス．
-  */
-class Main {
+/**
+ * TextAliveAPI用初期化処理，インスタンス生成，コールバック登録用クラス．
+ */
+class MainLogic {
     /**
      * @constructor
      */
-    constructor() {
+    constructor(music_url) {
         const canMng = new CanvasManager();
         this._canMng = canMng;
 
+        this._music_url = music_url;
         this._initPlayer();
 
         window.addEventListener("resize", () => this._resize());
@@ -28,7 +26,6 @@ class Main {
         this._duration = 0;
         this._position = 0;
     }
-
 
     /**
      * TextAliveAPI Player初期化．
@@ -59,7 +56,7 @@ class Main {
      */
     _onAppReady(app) {
         if (!app.songUrl) {
-            this._player.createFromSongUrl(music_url);
+            this._player.createFromSongUrl(this._music_url);
         }
 
         // ボタンクリック時の処理
@@ -91,7 +88,9 @@ class Main {
      */
     _onVideoReady(v) {
         // 歌詞のセットアップ
-        let lyrics = [];
+        let lyrics = [];　　
+        let Lyric = require("./lyric.js");
+
         // 歌詞を単語単位で左端から表示するよう座標を仮設定
         // CanvasManager::_drawLyrics() にて表示する際，ウィンドウ内に収まれば左端から表示しないよう座標の調整を行う
         if (v.firstWord) {
@@ -191,48 +190,6 @@ class Main {
     }
 }
 
-
-/**
- * 歌詞（1文字）クラス．
- */
-class Lyric {
-    /**
-     * @constructor
-     * @param {IChar} data TextAliveAPI 歌詞情報（1文字）
-     * @param {Number} startPos 歌詞再生開始タイミング[ms]．IChar.startTimeから取得できる為，実質不要な引数．
-     */
-    constructor(data, startPos) {
-        this.char = data; // 歌詞データ
-        this.text = data.text; // 歌詞文字
-        this.startTime = data.startTime; // 開始タイム [ms]
-        this.endTime = data.endTime; // 終了タイム [ms]
-        this.duration = data.duration; // 開始から終了迄の時間 [ms]
-        this.startPos = startPos;
-
-        this.initialize();
-    }
-
-
-    /**
-     * 最初から実行用初期化処理．
-     */
-    initialize() {
-        this.pos = new Point(0, 0); // グリッドの座標
-        this.isDraw = false; // 描画するかどうか
-        this.isCollided = false; // 衝突済みかどうか
-    }
-
-
-    /**
-     * 更新処理．
-     * @param {Number} delta 前回呼び出し時からの時間差分[ms]
-     */
-    update(delta) {
-        this.pos.y += delta;
-    }
-}
-
-
 /**
  * Lyric及びNegi衝突時のエフェクトクラス．
  */
@@ -325,12 +282,16 @@ class CanvasManager {
         this.negiSrc = "";
         this._collisionEffectList = [];
 
+        // 漢字判定の正規表現
+        this._kanjiRegexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
+
+        // 初期化
         this.initialize();
     }
 
 
     /**
-     * 最初から実行用初期化処理．
+     * 実行用初期化処理．
      */
     initialize() {
         // 現在のスクロール位置（画面右上基準）．実質const値．
@@ -523,7 +484,7 @@ class CanvasManager {
         if (key_code === 32) {
 
             // 投げるネギの生成
-            let Negi = require("./character");
+            let Negi = require("./negi.js");
             let src = "";
             if (this.negiSrc != "") {
                 src = this.negiSrc;
@@ -630,7 +591,7 @@ class CanvasManager {
                                     if (ty == n || ty == -n) my = -my;
                                 }
                             }
-                        // グリッド座標をセット＆描画を有効に
+                            // グリッド座標をセット＆描画を有効に
                         lyric.pos.x = nx + tx;
                         lyric.pos.y = ny + ty;
                     }
@@ -650,38 +611,11 @@ class CanvasManager {
 
 
                     // 衝突判定 
-                    for (let j = 0; j < this._negiList.length; j++) {
-                        let negi = this._negiList[j];
-                        if (negi.isRemoved()) {
-                            continue;
-                        }
-                        const negi_x = negi.getX();
-                        const negi_y = window.innerHeight - negi.getY();
-                        // あたり判定
-                        if (lyric.isCollided == false && negi_x >= px - 40 && negi_x <= px + 40 &&
-                            negi_y >= py - 40 && negi_y <= py + 40) {
-                            // スコアの更新
-                            const regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
-                            if (lyric.text.match(regexp)) {
-                                this._score += 1000;
-                            } else {
-                                this._score += 100;
-                            }
-                            this.setScoreText(this._score);
+                    this._collisionNegiAndLyric(lyric, px, py);
 
-                            lyric.isCollided = true;
-                            lyric.isDraw = false;
-                            negi.removeDocument();
-
-                            // 当たったのエフェクト追加
-                            this._collisionEffectList.push(new CollisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
-                            this._collisionEffectCount++;
-                        }
-                    }
                     const prog = this._easeOutBack(Math.min((position - lyric.startTime) / 200, 1));
 
-                    let regexp = /([\u{3005}\u{3007}\u{303b}\u{3400}-\u{9FFF}\u{F900}-\u{FAFF}\u{20000}-\u{2FFFF}][\u{E0100}-\u{E01EF}\u{FE00}-\u{FE02}]?)/mu;
-                    if (lyric.text.match(regexp)) {
+                    if (lyric.text.match(this._kanjiRegexp)) {
                         ctx.fillStyle = '#FF0000';
                     } else {
                         ctx.fillStyle = '#000000';
@@ -694,6 +628,43 @@ class CanvasManager {
             } else lyric.isDraw = false;
         }
     }
+
+
+    /** 
+     *  歌詞とネギとの衝突判定
+     */
+    _collisionNegiAndLyric(lyric, px, py) {
+        for (let j = 0; j < this._negiList.length; j++) {
+            let negi = this._negiList[j];
+            if (negi.isRemoved()) {
+                continue;
+            }
+            const negi_x = negi.getX();
+            const negi_y = window.innerHeight - negi.getY();
+            // あたり判定
+            if (lyric.isCollided == false && negi_x >= px - 40 && negi_x <= px + 40 &&
+                negi_y >= py - 40 && negi_y <= py + 40) {
+                // スコアの更新
+                if (lyric.text.match(this._kanjiRegexp)) {
+                    this._score += 1000;
+                } else {
+                    this._score += 100;
+                }
+                this.setScoreText(this._score);
+
+                lyric.isCollided = true;
+                lyric.isDraw = false;
+                negi.removeDocument();
+
+                // 当たったのエフェクト追加
+                this._collisionEffectList.push(new CollisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
+                this._collisionEffectCount++;
+            }
+        }
+
+
+    }
+
     _easeOutBack(x) { return 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2); }
 }
 
@@ -716,11 +687,15 @@ function clamp(val, min, max) {
 
 
 // ---- 以下，選曲時のボタン処理 ----
+
+// 再生用動画URL
+var music_url;
+
 // 愛されなくても君がいる
 document.getElementById("ygY2qObZv24").onclick = function() {
     music_url = "http://www.youtube.com/watch?v=ygY2qObZv24";
     selectMusicDone();
-    new Main()
+    new MainLogic(music_url);
 };
 
 
@@ -728,7 +703,7 @@ document.getElementById("ygY2qObZv24").onclick = function() {
 document.getElementById("a-Nf3QUFkOU").onclick = function() {
     music_url = "http://www.youtube.com/watch?v=a-Nf3QUFkOU";
     selectMusicDone();
-    new Main()
+    new MainLogic(music_url);
 };
 
 
@@ -736,7 +711,7 @@ document.getElementById("a-Nf3QUFkOU").onclick = function() {
 document.getElementById("XSLhsjepelI").onclick = function() {
     music_url = "http://www.youtube.com/watch?v=XSLhsjepelI";
     selectMusicDone();
-    new Main()
+    new MainLogic(music_url);
 };
 
 
