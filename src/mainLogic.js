@@ -1,4 +1,8 @@
 import { Player, Point } from "textalive-app-api";
+import pic from './pic/*.*';
+
+// 初期背景の読み込み
+document.getElementById("body").background = pic["wallmiku"]["png"];
 
 /**
  * 
@@ -135,22 +139,22 @@ class MainLogic {
         // サビ以外の場合：通常衣装のミクさんがネギを撃つ
         if (this._player.findChorus(position) != null) {
             let miku = document.getElementById("miku");
-            if (miku.src.includes("pic/miku.gif")) {
+            if (miku.src.includes(pic["miku"]["gif"])) {
 
-                miku.src = "pic/2020miku.gif";
-                this._canMng.negiSrc = "pic/ogi.png";
+                miku.src = pic["2020miku"]["gif"];
+                this._canMng.negiSrc = pic["ogi"]["png"];
                 let body = document.getElementById("body");
-                body.background = "pic/wall2020miku.png";
+                body.background = pic["wall2020miku"]["png"];
             }
 
         } else {
             let miku = document.getElementById("miku");
-            if (!miku.src.includes("pic/miku.gif")) {
+            if (!miku.src.includes(pic["miku"]["gif"])) {
 
-                miku.src = "pic/miku.gif ";
-                this._canMng.negiSrc = "pic/negi.png";
+                miku.src = pic["miku"]["gif"];
+                this._canMng.negiSrc = pic["negi"]["png"];
                 let body = document.getElementById("body");
-                body.background = "pic/wallmiku.png";
+                body.background = pic["wallmiku"]["png"];
             }
         }
     }
@@ -196,7 +200,6 @@ class MainLogic {
 
 // 再生用動画URL
 var music_url;
-
 // 愛されなくても君がいる
 document.getElementById("ygY2qObZv24").onclick = function() {
     music_url = "http://www.youtube.com/watch?v=ygY2qObZv24";

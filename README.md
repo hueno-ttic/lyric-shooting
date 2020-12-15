@@ -22,7 +22,6 @@ npm install
 以下のコマンドで `docs` 以下にビルド済みファイルが生成されます。 
 ```sh
 npm run build
-cp -r src/pic dev/
 ```
 
 サーバー動作には以下のコマンドを使用する
@@ -50,5 +49,5 @@ TextAlive App API について詳しくはWebサイト [TextAlive for Developers
 - twitter: @super_reader
 
 ## 開発メンバー
-super_reader
-ya2ha4
+- super_reader
+- ya2ha4

@@ -1,4 +1,5 @@
 import { Point } from "textalive-app-api";
+import pic from './pic/*.*';
 
 /**
  * ドキュメント内のcanvas管理クラス．
@@ -69,7 +70,7 @@ class CanvasManager {
 
         // ミクさんの初期設定
         let miku = document.getElementById("miku");
-        miku.src = "pic/miku.gif";
+        miku.src = pic["miku"]["gif"];
         this._mikuPos = new Point(this._space / 2, 0);
         miku.style.left = this._mikuPos.x;
 
@@ -227,7 +228,7 @@ class CanvasManager {
             if (this.negiSrc != "") {
                 src = this.negiSrc;
             } else {
-                src = 'pic/negi.png';
+                src = pic["negi"]["png"];
             }
             const Negi = require("./negi.js");
             this._negiList.push(new Negi(this._negiCount, src));
@@ -302,33 +303,34 @@ class CanvasManager {
 
                         // 他の歌詞との衝突判定
                         hitcheck: for (let n = 0; n <= 100; n++) {
-                                tx = n;
-                                ty = 0;
-                                let mx = -1;
-                                let my = 1;
-                                const rn = (n == 0) ? 1 : n * 4;
+                            tx = n;
+                            ty = 0;
+                            let mx = -1;
+                            let my = 1;
+                            const rn = (n == 0) ? 1 : n * 4;
 
-                                // 周囲を走査
-                                for (let r = 0; r < rn; r++) {
-                                    isOk = true;
-                                    for (let j = 0; j < i; j++) {
-                                        const tl = this._lyrics[j];
+                            // 周囲を走査
+                            for (let r = 0; r < rn; r++) {
+                                isOk = true;
+                                for (let j = 0; j < i; j++) {
+                                    const tl = this._lyrics[j];
 
-                                        // 他の歌詞と衝突している
-                                        if (tl.isDraw && tl.pos.x == nx + tx && tl.pos.y == ny + ty) {
-                                            isOk = false;
-                                            break;
-                                        }
+                                    // 他の歌詞と衝突している
+                                    if (tl.isDraw && tl.pos.x == nx + tx && tl.pos.y == ny + ty) {
+                                        isOk = false;
+                                        break;
                                     }
-                                    if (isOk) break hitcheck;
-
-                                    // 次のグリッドへ
-                                    tx += mx;
-                                    if (tx == n || tx == -n) mx = -mx;
-                                    ty += my;
-                                    if (ty == n || ty == -n) my = -my;
                                 }
+                                if (isOk) break hitcheck;
+
+                                // 次のグリッドへ
+                                tx += mx;
+                                if (tx == n || tx == -n) mx = -mx;
+                                ty += my;
+                                if (ty == n || ty == -n) my = -my;
                             }
+                        }
+
                         // グリッド座標をセット＆描画を有効に
                         lyric.pos.x = nx + tx;
                         lyric.pos.y = ny + ty;
