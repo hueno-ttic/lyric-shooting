@@ -223,13 +223,13 @@ class CanvasManager {
         if (key_code === 32) {
 
             // 投げるネギの生成
-            let Negi = require("./negi.js");
             let src = "";
             if (this.negiSrc != "") {
                 src = this.negiSrc;
             } else {
                 src = 'pic/negi.png';
             }
+            const Negi = require("./negi.js");
             this._negiList.push(new Negi(this._negiCount, src));
             this._negiCount++;
         }
@@ -395,7 +395,7 @@ class CanvasManager {
                 negi.removeDocument();
 
                 // 当たったのエフェクト追加
-                let CollisionEffect = require("./collisionEffect.js");
+                const CollisionEffect = require("./collisionEffect.js");
                 this._collisionEffectList.push(new CollisionEffect(negi.getX(), negi.getY(), this._collisionEffectCount));
                 this._collisionEffectCount++;
             }

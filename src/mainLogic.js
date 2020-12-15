@@ -90,7 +90,7 @@ class MainLogic {
     _onVideoReady(v) {
         // 歌詞のセットアップ
         let lyrics = [];　　
-        let Lyric = require("./lyric.js");
+        const Lyric = require("./lyric.js");
 
         // 歌詞を単語単位で左端から表示するよう座標を仮設定
         // CanvasManager::_drawLyrics() にて表示する際，ウィンドウ内に収まれば左端から表示しないよう座標の調整を行う
