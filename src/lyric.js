@@ -1,4 +1,4 @@
-import { Player, Point, stringToDataUrl } from "textalive-app-api";
+import { Point } from "textalive-app-api";
 
 /**
  * 歌詞（1文字）クラス．
