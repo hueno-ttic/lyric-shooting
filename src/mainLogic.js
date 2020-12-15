@@ -1,6 +1,9 @@
 import { Player, Point } from "textalive-app-api";
 import pic from './pic/*.*';
 
+document.getElementById("body").background = pic["wallmiku"]["png"];
+
+
 /**
  * 
  * 歌詞を撃ち落としてスコアを競うノスタルジック溢れるシューティングゲーム
@@ -197,7 +200,6 @@ class MainLogic {
 
 // 再生用動画URL
 var music_url;
-
 // 愛されなくても君がいる
 document.getElementById("ygY2qObZv24").onclick = function() {
     music_url = "http://www.youtube.com/watch?v=ygY2qObZv24";
