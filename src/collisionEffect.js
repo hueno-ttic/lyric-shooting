@@ -1,3 +1,4 @@
+import pic from './pic/*.*';
 /**
  * Lyric及びNegi衝突時のエフェクトクラス．
  */
@@ -15,7 +16,7 @@ class CollisionEffect {
 
         this.time_count = 0;
 
-        this.img.src = 'pic/star.gif';
+        this.img.src = pic["star"]["gif"];
         // イメージの大きさ
         this.img.width = "100";
         this.img.height = "100";

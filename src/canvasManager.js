@@ -1,4 +1,5 @@
 import { Point } from "textalive-app-api";
+import pic from './pic/*.*';
 
 /**
  * ドキュメント内のcanvas管理クラス．
@@ -69,7 +70,7 @@ class CanvasManager {
 
         // ミクさんの初期設定
         let miku = document.getElementById("miku");
-        miku.src = "pic/miku.gif";
+        miku.src = pic["miku"]["gif"];
         this._mikuPos = new Point(this._space / 2, 0);
         miku.style.left = this._mikuPos.x;
 
@@ -227,7 +228,7 @@ class CanvasManager {
             if (this.negiSrc != "") {
                 src = this.negiSrc;
             } else {
-                src = 'pic/negi.png';
+                src = pic["negi"]["png"];
             }
             const Negi = require("./negi.js");
             this._negiList.push(new Negi(this._negiCount, src));
@@ -329,7 +330,7 @@ class CanvasManager {
                                     if (ty == n || ty == -n) my = -my;
                                 }
                             }
-                        // グリッド座標をセット＆描画を有効に
+                            // グリッド座標をセット＆描画を有効に
                         lyric.pos.x = nx + tx;
                         lyric.pos.y = ny + ty;
                     }
