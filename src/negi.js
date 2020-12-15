@@ -1,5 +1,3 @@
-const { sortedIndex } = require("textalive-app-api");
-
 /**
  * ネギ（撃ったオブジェクト）クラス．
  * 歌詞と接触した際，歌詞を消したりエフェクトを表示するために使用．
