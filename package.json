@@ -5,7 +5,7 @@
   "description": "はちゅねミクを操り、曲に合わせて落ちてくる歌詞を撃ち落とすブラウザゲーム",
   "main": "mainLogic.js",
   "scripts": {
-    "build-dev": "parcel src/index.html --out-dir dev; cp -r ./src/pic ./dev",
+    "build-dev": "parcel src/index.html --out-dir dev",
     "build": "parcel build src/index.html --public-url ./ --out-dir docs --no-source-maps",
     "clean": "del-cli .cache dev docs"
   },

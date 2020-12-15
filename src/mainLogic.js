@@ -1,4 +1,5 @@
 import { Player, Point } from "textalive-app-api";
+import pic from './pic/*.*';
 
 /**
  * 
@@ -133,24 +134,25 @@ class MainLogic {
         // キャラチェンジ演出（背景，プレイヤー操作のミクさん，撃つオブジェクトの切り替え）
         // サビの場合：マジカルミライ2020衣装のミクさんが扇を撃つ
         // サビ以外の場合：通常衣装のミクさんがネギを撃つ
+        console.log(this._player.findChorus(position));
         if (this._player.findChorus(position) != null) {
             let miku = document.getElementById("miku");
-            if (miku.src.includes("pic/miku.gif")) {
+            if (miku.src.includes(pic["miku"]["gif"])) {
 
-                miku.src = "pic/2020miku.gif";
-                this._canMng.negiSrc = "pic/ogi.png";
+                miku.src = pic["2020miku"]["gif"];
+                this._canMng.negiSrc = pic["ogi"]["png"];
                 let body = document.getElementById("body");
-                body.background = "pic/wall2020miku.png";
+                body.background = pic["wall2020miku"]["png"];
             }
 
         } else {
             let miku = document.getElementById("miku");
-            if (!miku.src.includes("pic/miku.gif")) {
+            if (!miku.src.includes(pic["miku"]["gif"])) {
 
-                miku.src = "pic/miku.gif ";
-                this._canMng.negiSrc = "pic/negi.png";
+                miku.src = pic["miku"]["gif"];
+                this._canMng.negiSrc = pic["negi"]["png"];
                 let body = document.getElementById("body");
-                body.background = "pic/wallmiku.png";
+                body.background = pic["wallmiku"]["png"];
             }
         }
     }
