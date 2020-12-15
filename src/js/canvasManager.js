@@ -1,5 +1,5 @@
 import { Point } from "textalive-app-api";
-import pic from './pic/*.*';
+import pic from '../pic/*.*';
 
 /**
  * ドキュメント内のcanvas管理クラス．

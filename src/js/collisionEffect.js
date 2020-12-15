@@ -1,4 +1,4 @@
-import pic from './pic/*.*';
+import pic from '../pic/*.*';
 /**
  * Lyric及びNegi衝突時のエフェクトクラス．
  */
