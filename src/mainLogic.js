@@ -134,7 +134,6 @@ class MainLogic {
         // キャラチェンジ演出（背景，プレイヤー操作のミクさん，撃つオブジェクトの切り替え）
         // サビの場合：マジカルミライ2020衣装のミクさんが扇を撃つ
         // サビ以外の場合：通常衣装のミクさんがネギを撃つ
-        console.log(this._player.findChorus(position));
         if (this._player.findChorus(position) != null) {
             let miku = document.getElementById("miku");
             if (miku.src.includes(pic["miku"]["gif"])) {
