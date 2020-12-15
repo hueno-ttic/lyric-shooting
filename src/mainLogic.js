@@ -1,8 +1,8 @@
 import { Player, Point } from "textalive-app-api";
 import pic from './pic/*.*';
 
+// 初期背景の読み込み
 document.getElementById("body").background = pic["wallmiku"]["png"];
-
 
 /**
  * 
